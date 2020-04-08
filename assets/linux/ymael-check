@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+LOGIN=$(cat ~/.local/share/ymael/login)
+python3 $HOME/.local/opt/ymael/main.py $LOGIN

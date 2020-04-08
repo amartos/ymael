@@ -1,0 +1,5 @@
+[Desktop Entry]
+Exec=bash -c "$HOME/.local/opt/ymael/assets/linux/ymael.sh"
+Name=Ymael
+Icon=edenya
+Type=Application
