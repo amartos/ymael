@@ -7,10 +7,9 @@ from datetime import datetime
 
 class MDMaker:
 
-    def __init__(self, filename, rps, add_before=""):
+    def __init__(self, filename, rp, add_before=""):
         self._filename = filename
-        self._rps = rps
-        self._date_format = self._rps["date format"]
+        self._rp = rp
         self._header = ""
         self._add_before = add_before
         self._main = """# %s
@@ -35,35 +34,33 @@ __%s__
 %s"""
         self._body = ""
 
-        self._authors = list()
         self._fill_body()
         self._fill_header()
         self._write_to_file()
 
     def _fill_body(self):
-        dates = [datetime.strptime(x, self._date_format) \
-                for x in self._rps["posts"].keys()]
+        posts = self._rp.get_posts()
+        dates = [datetime.strptime(d, self._rp.get_storage_date_format()) for d in posts.keys()]
         dates.sort()
-        while dates:
-            date = dates.pop(0)
-            date = date.strftime(self._date_format)
-            title = self._rps["posts"][date]["title"]
-            title = self._set_markups(title)
-            author, race, sex, look, clothes = self._rps["posts"][date]["author"]
-            self._authors.append(author)
-            date_in_game = self._rps["posts"][date]["date in game"]
-            language = self._rps["posts"][date]["language"]
-            text = self._rps["posts"][date]["text"]
-            text = self._set_markups(text)
-            post = self._template % (
-                    author,
-                    title,
-                    race, sex, look, clothes,
-                    date_in_game, date,
-                    language,
-                    text
-                )
-            self._body += post
+        for date in dates:
+            irl_date = datetime.strftime(date, self._rp.get_date_format())
+            date = datetime.strftime(date, self._rp.get_storage_date_format())
+            post_keys = sorted(list(posts[date].keys()))
+            for index in post_keys:
+                title = self._set_markups(self._rp.get_post_title(date, index))
+                author, race, sex, look, clothes = self._rp.get_post_author_infos(date, index)
+                ig_date = self._rp.get_post_ig_date(date, index)
+                language = self._rp.get_post_language(date, index)
+                text = self._set_markups(self._rp.get_post_text(date, index))
+                post = self._template % (
+                        author,
+                        title,
+                        race, sex, look, clothes,
+                        ig_date, irl_date,
+                        language,
+                        text
+                    )
+                self._body += post
 
     def _set_markups(self, text):
         replacements = [
@@ -94,18 +91,19 @@ __%s__
         return text
 
     def _fill_header(self):
-        title = self._rps["title"]
-        title = self._set_markups(title)
-        date_irl = self._rps["oldest"]
-        date_in_game = self._rps["posts"][date_irl]["date in game"]
-        unique_authors = sorted(list(set(self._authors)))
-        authors = ", ".join(unique_authors)
-        location = "__\n\n__".join(self._rps["location"])
+        title = self._set_markups(self._rp.get_title())
+        irl_date = self._rp.convert_date(self._rp.get_oldest_date())
+        ig_date = self._rp.get_ig_date()
+        authors = self._rp.get_authors()
+        dm = self._rp.get_dm()
+        if dm:
+            authors = authors + " & comme MJ : {}".format(dm)
+        location = self._rp.get_location()
         self._header = self._main % (
                 title,
                 authors,
-                date_in_game,
-                date_irl,
+                ig_date,
+                irl_date,
                 location
             )
 

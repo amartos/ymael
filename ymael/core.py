@@ -55,8 +55,8 @@ class Ymael:
         if extension:
             ext = extension
         assert ext in self._exporters.keys(), "Output format not supported."
-        if bool(self._extract.rps):
-            self._exporters[ext](filename, self._extract.rps)
+        if not self._extract.rp.is_posts_empty():
+            self._exporters[ext](filename, self._extract.rp)
 
     def _notify(self, null_notif, url=""):
         if url:
@@ -85,13 +85,10 @@ class Ymael:
         self._notifier_config.save(notifier.watch_list)
 
     def _extraction(self, url):
-        extract = dict()
         for key in self._parsers:
             if key in url:
-                parser = self._parsers[key]
-                self._extract = parser.extract_rps(
+                self._extract = self._parsers[key](
                         url,
                         self._secrets,
-                        Config,
                         self._filemanager.rps
-                    )
+                        )
