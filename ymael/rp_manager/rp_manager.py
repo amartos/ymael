@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-import json
 
+from .database import Database
 
 class RPmanager:
 
@@ -14,53 +14,50 @@ class RPmanager:
                 "authors":"",
                 "dm":"",
                 "date format":date_format,
-                "posts":{},
-                "filename":""
+                "posts":{}
                 }
 
-        self._now = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
         self._dm_suffix = "_DM"
         self._rps_dir = rps_dir
-        self._filepath = ""
 
         self._new_posts = 0
         self._last_authors = list()
 
-###############################################################################
-# Decorators
-###############################################################################
-
-    def _check_filepath(func):
-        if not self.get_filepath():
-            # sets oldest date, title and filepath
-            # (which depends on the firsts)
-            self._set_main_metadata()
-        return func
+        self._db = Database(rps_dir, "rps.db")
+        self._now = datetime.strftime(datetime.now(), self.get_storage_date_format())
+        self._check_tables()
 
 ###############################################################################
 # Public functions
 ###############################################################################
 
-## Load & save
+## Watch, save & load
 
-    @_check_filepath
-    def load(self):
-        if not os.path.exists(self._filepath):
-            print("{} does not exists.".format(self._filepath))
+    def save(self):
+        self._reference_rp()
+        self._save_posts()
+
+    def load(self, title):
+        if self._db.is_row("rps", [("title", title)]):
+            result = self._db.get_row("rps", [("title", title)])
+            creation_date, title, location, dms = result
+
+            self.set_metadata(location, title=title, date=creation_date, dm=dms)
+
+            self._db.search_rows("posts", [("rp_title", title)])
+            results = self._db.get_results()
+            while results != None:
+                rp_title, irl_date, ig_date, post_title, name, race, sex, \
+                        look, clothes, language, text, retrieved_date = results
+                author_infos = (name,race,sex,look,clothes)
+                self.create_post(irl_date, ig_date, post_title, author_infos, language, text, date=retrieved_date)
+                results = self._db.get_results()
+        else:
             return False
-
-        try:
-            with open(self._filepath, "r") as f:
-                self.rp = json.load(f)
-        except json.decoder.JSONDecodeError:
-            assert "JSON decode error for {}.".format(self._filepath)
-
         return True
 
-    @_check_filepath
-    def save(self)
-        with open(self._filepath, "w") as f:
-            json.dump(self.rp, f)
+    def close_db(self):
+        self._db.close()
 
 ## Booleans
 
@@ -77,7 +74,7 @@ class RPmanager:
         return False
 
     def are_new_posts(self):
-        self._count_new_posts()
+        self._get_new_posts_infos()
         return bool(self._new_posts)
 
 ## Converters
@@ -98,7 +95,6 @@ class RPmanager:
 
 ## Set infos
 
-    @_check_filepath
     def set_metadata(self, location, title="", date="", dm=""):
         self._set_oldest_date(date)
         self._set_title(title)
@@ -140,14 +136,14 @@ class RPmanager:
 
 ## Get infos
 
-    def get_filepath(self):
-        return self._filepath
+    def get_current_date(self):
+        return datetime.strptime(self._now, self.get_storage_date_format())
 
     def get_date_format(self):
         return self.rp["date format"]
 
     def get_storage_date_format(self):
-        return "%Y-%m-%d %H:%M:%S"
+        return self._db.get_date_format()
 
     def get_location(self):
         return self.rp["location"]
@@ -171,7 +167,7 @@ class RPmanager:
         return self.rp["dm"]
 
     def get_last_retrieved_date(self):
-        last_date = self._get_last_retrieved_date()
+        last_date = self._get_last_date()
         last_index = self._get_last_index(last_date)
         return self.get_post_retrieved_date(last_date, last_index)
 
@@ -201,39 +197,28 @@ class RPmanager:
     def get_post_retrieved_date(self, date, index):
         return self.rp["posts"][date][index]["retrieved"]
 
-    def get_new_posts_count(self):
-        return self._new_posts
-
-    def get_last_authors(self):
-        return self._last_authors
-
 ###############################################################################
 # Private functions
 ###############################################################################
 
 ## Tools
 
-    def _count_new_posts(self):
-        dates = [datetime.strptime(d, self.get_date_format()) for d in self.rp["posts"].keys()]
-        dates.sort(reverse=True)
-        for date in dates:
-            indexes = list(self.rp["posts"][date].keys())
-            indexes.sort(reverse=True)
-            for i in indexes:
-                retrieved = self.rp["posts"][date][i]["retrieved"]
-                if retrieved == self._now:
-                    self._new_posts += 1
-                    if not values["author"] in self._last_authors:
-                        self._last_authors.append(values["author"])
-                else:
-                    return
+    def _get_new_posts_infos(self):
+        new_authors = list()
+        conditions = [("rp_title", self.get_title()), ("retrieved_date", self._now)]
+        self._db.search_rows("posts", conditions, column_order="irl_date", reverse=True)
+        results = self._db.get_results()
+        while results != None:
+            rp_title, irl_date, ig_date, post_title, name, race, sex, \
+                    look, clothes, language, text, retrieved_date = results
+            self._new_posts += 1
+            new_authors.append(name)
+            results = self._db.get_results()
+
+        self._last_authors = sorted(list(set(new_authors)), key=str.casefold)
 
 ## Set infos
 
-    def _set_main_metadata(self):
-        self._set_oldest_date()
-        self._set_title()
-        self._set_file_infos()
 
     def _set_oldest_date(self, date=""):
         if not date:
@@ -251,16 +236,6 @@ class RPmanager:
             date = self.get_oldest_date()
             title = self.rp["posts"][date][0]["title"]
         self.rp["title"] = title
-
-    def _set_file_infos(self):
-        title = self.get_title()
-        oldest = self.get_oldest_date()
-        filename = title+"_"+oldest
-        for item in [(" ","_"), ("/","-"), (":","-")]:
-            old, new = item
-            filename = filename.replace(old, new)
-        self.rp["filename"] = filename
-        self._filepath = self.rps_dir+"/"+filename
 
     def _set_authors_and_dm(self, dm=""):
         authors = self._get_all_authors()
@@ -285,11 +260,11 @@ class RPmanager:
         authors = sorted(list(set(authors)), key=str.casefold)
         return authors
 
-    def _get_last_retrieved_date(self):
+    def _get_last_date(self):
         dates = list(self.rp["posts"].keys())
         dates = [datetime.strptime(d, self.get_storage_date_format()) for d in dates]
         dates.sort()
-        dates = [datetime.stftime(d, self.get_storage_date_format()) for d in dates]
+        dates = [datetime.strftime(d, self.get_storage_date_format()) for d in dates]
         return dates[-1]
 
     def _get_last_index(self, date):
@@ -297,3 +272,87 @@ class RPmanager:
         indexes.sort()
         return indexes[-1]
 
+## Database
+
+    def _check_tables(self):
+        self._create_rps_table()
+        self._create_posts_table()
+
+    def _create_rps_table(self):
+        columns = [
+                ("creation_date", "date", "not null"),
+                ("title", "text", "not null"),
+                ("location", "text", "not null"),
+                ("dms", "text")
+                ]
+        primary_keys = ["creation_date", "title", "location"]
+        self._create_manager_tables("rps", columns, primary_keys)
+
+    def _create_posts_table(self):
+        columns = [
+                ("rp_title", "text", "not null"),
+                ("irl_date", "date", "not null"),
+                ("ig_date", "date", "not null"),
+                ("post_title", "text", "not null"),
+                ("author", "text", "not null"),
+                ("race", "text", "not null"),
+                ("sex", "text", "not null"),
+                ("look", "text", "not null"),
+                ("clothes", "text", "not null"),
+                ("language", "text", "not null"),
+                ("post", "text", "not null"),
+                ("retrieved_date", "date", "not null")
+                ]
+        primary_keys = ["rp_title", "post_title", "irl_date", "author"]
+        foreign_keys = [("rp_title", "rps", "title")]
+        self._create_manager_tables("posts", columns, primary_keys, foreign_keys)
+
+    def _create_manager_tables(self, table_name, columns, primary_keys, foreign_keys=[]):
+        if not self._db.is_table(table_name):
+            self._db.create_table(table_name, columns, primary_keys, foreign_keys)
+
+    def _reference_rp(self):
+        columns = ["creation_date", "title", "location", "dms"]
+        creation_date = self.get_oldest_date()
+        title = self.get_title()
+        location = self.get_location()
+        dms = self.get_dm()
+        values = [(creation_date, title, location, dms)]
+        # we need to replace here in case the DMs string has changed
+        self._db.insert_rows("rps", columns, values, replace=True)
+
+    def _save_posts(self):
+        columns = [
+                "rp_title",
+                "irl_date",
+                "ig_date",
+                "post_title",
+                "author", "race", "sex", "look", "clothes",
+                "language",
+                "post",
+                "retrieved_date"
+                ]
+
+        values = list()
+
+        rp_title = self.get_title()
+        posts = self.get_posts()
+        for irl_date in posts.keys():
+            for index in posts[irl_date].keys():
+                ig_date = self.get_post_ig_date(irl_date, index)
+                retrieved_date = self.get_post_retrieved_date(irl_date, index)
+                post_title = self.get_post_title(irl_date, index)
+                author, race, sex, look, clothes = self.get_post_author_infos(irl_date, index)
+                language = self.get_post_language(irl_date, index)
+                post = self.get_post_text(irl_date, index)
+                values.append((
+                        rp_title,
+                        irl_date,
+                        ig_date,
+                        post_title,
+                        author, race, sex, look, clothes,
+                        language,
+                        post,
+                        retrieved_date))
+
+        self._db.insert_rows("posts", columns, values)

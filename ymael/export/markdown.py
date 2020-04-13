@@ -4,6 +4,8 @@ import re
 import textwrap
 from datetime import datetime
 
+from ..rp_manager import RPmanager
+
 
 class MDMaker:
 

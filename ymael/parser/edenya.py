@@ -4,13 +4,13 @@ import requests
 import bs4
 import re
 
-from .rp import RPmanager
+from ..rp_manager import RPmanager
 
 
 class EdenyaParser:
 
     def __init__(self, url, secrets, rps_dir):
-        self.rp = RPmanager(rps_dir, date_format="%d/%m/%Y %H:%M")
+        self.rp = RPmanager(rps_dir, date_format="%d/%m/%Y %H:%M", url=url)
 
         self.treat_url(url)
         self._login(secrets)
@@ -21,7 +21,8 @@ class EdenyaParser:
 
         self._parse_rps(page=1)
         if not self.rp.is_posts_empty():
-            is_prev_rps = self.rp.load()
+            title = self.rp.get_title()
+            is_prev_rps = self.rp.load(title, url)
             if not is_prev_rps:
                 self.rp.set_metadata(self._parse_location())
 
@@ -124,7 +125,7 @@ class EdenyaParser:
             # we don't use "Événement" here as some DMs like to mess up with the
             # author's name. The parentheses are the only common option.
             if "(" in name:
-                real_name = a.split("(")[-1].replace(")","")
+                real_name = name.split("(")[-1].replace(")","")
                 name = self.rp.convert_name_dm(real_name)
         if not "Aucune information" in infos:
             part = re.split("<\/{0,}b>|<br>",infos)

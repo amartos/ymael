@@ -2,12 +2,14 @@
 
 import os
 import platform
+from datetime import datetime
 
 from .parser import *
 from .notification import *
 from .export import *
 from .files import *
 from .interface import *
+from .rp_manager import *
 
 
 class Ymael:
@@ -58,31 +60,31 @@ class Ymael:
         if not self._extract.rp.is_posts_empty():
             self._exporters[ext](filename, self._extract.rp)
 
-    def _notify(self, null_notif, url=""):
-        if url:
-            if not url in self._notifier_config.watch_list.keys() and "index.php" in url:
-                self._notifier_config.watch_list[url] = tuple()
-
-        meta_rps = dict()
-        for url in self._notifier_config.watch_list.keys():
+    def _notify(self, null_notif, url="", delete=False):
+        new_rps = []
+        self._watcher = Watcher(self._filemanager.rps)
+        if url and not delete:
             self._extraction(url)
-            meta_rps[url] = self._extract.rps
+            retrieved_date = self._extract.rp.get_current_date()
+            title = self._extract.rp.get_title()
+            self._watcher.watch(retrieved_date, title, url)
+        elif url and delete:
+            self._watcher.unwatch(url)
+        else:
+            if self._watcher.are_urls_to_check():
+                urls = self._watcher.get_urls_to_check()
+                for url in urls:
+                    self._extraction(url)
+                    retrieved_date = self._extract.rp.get_current_date()
+                    title = self._extract.rp.get_title()
+                    self._watcher.watch(retrieved_date, title, url, replace=True)
+                    if self._extract.rp.are_new_posts():
+                        u, t, count, authors = self._extract.rp.get_news_infos()
+                        new_rps.append((url, title, count, authors))
+                        self._extract.rp.close_db() # avoid ClosedDB issues
 
-        try:
-            date_format = self._extract.date_format
-        except AttributeError:
-            date_format = None
-
-        notifier = Notifier(
-                self._notifier_config.watch_list,
-                self._notifier_config.charname,
-                meta_rps,
-                self._filemanager.ymael_icon,
-                date_format,
-                null_notif
-            )
-
-        self._notifier_config.save(notifier.watch_list)
+            if new_rps or null_notif:
+                Notifier(new_rps, self._filemanager.ymael_icon, null_notif)
 
     def _extraction(self, url):
         for key in self._parsers:
