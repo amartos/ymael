@@ -31,7 +31,7 @@ __%s__
 ## %s
 
 > Titre : %s\\
-> %s %s, Apparence %s, Habillement %s\\
+> Race: %s, Sexe: %s, Apparence: %s, Habillement: %s\\
 > EJ le %s --- HJ le %s\\
 > Météo: %s\\
 > Langue parlée : %s
@@ -124,7 +124,7 @@ __%s__
     def _hard_wrap(self, text):
         splitted = text.split("\n")
         for index,par in enumerate(splitted):
-            wrapped = textwrap.wrap(par, width=80)
+            wrapped = textwrap.wrap(par, width=90)
             splitted[index] = "\n".join(wrapped)
         text = "\n".join(splitted)
         return text
