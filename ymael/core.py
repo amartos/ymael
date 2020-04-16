@@ -32,7 +32,7 @@ class Ymael:
             self._filemanager = FileManager.windows_system_init()
 
         self._parsers = {
-                "www.edenya.net":EdenyaParser,
+                "edenya.net":EdenyaParser,
             }
 
         self._exporters = {

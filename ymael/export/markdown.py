@@ -20,6 +20,8 @@ Par %s
 
 Le %s (%s)
 
+Météo: %s
+
 __%s__
 
 """
@@ -31,6 +33,7 @@ __%s__
 > Titre : %s\\
 > %s %s, Apparence %s, Habillement %s\\
 > EJ le %s --- HJ le %s\\
+> Météo: %s\\
 > Langue parlée : %s
 
 %s"""
@@ -52,6 +55,7 @@ __%s__
                 title = self._set_markups(self._rp.get_post_title(date, index))
                 author, race, sex, look, clothes = self._rp.get_post_author_infos(date, index)
                 ig_date = self._rp.get_post_ig_date(date, index)
+                weather = self._rp.get_post_weather(date, index)
                 language = self._rp.get_post_language(date, index)
                 text = self._set_markups(self._rp.get_post_text(date, index))
                 post = self._template % (
@@ -59,6 +63,7 @@ __%s__
                         title,
                         race, sex, look, clothes,
                         ig_date, irl_date,
+                        weather,
                         language,
                         text
                     )
@@ -96,6 +101,7 @@ __%s__
         title = self._set_markups(self._rp.get_title())
         irl_date = self._rp.convert_date(self._rp.get_oldest_date())
         ig_date = self._rp.get_ig_date()
+        weather = self._rp.get_weather()
         authors = self._rp.get_authors()
         dm = self._rp.get_dm()
         if dm:
@@ -106,6 +112,7 @@ __%s__
                 authors,
                 ig_date,
                 irl_date,
+                weather,
                 location
             )
 

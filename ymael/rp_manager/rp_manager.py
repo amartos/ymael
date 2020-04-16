@@ -101,7 +101,7 @@ class RPmanager:
         self._set_authors_and_dm(dm)
         self._set_location(location)
 
-    def create_post(self, irl_date, ig_date, title, author_infos, language, text, date=""):
+    def create_post(self, irl_date, ig_date, weather, title, author_infos, language, text, date=""):
         # This raises ValueError if the irl_date is not in the storage date format,
         # and converts it in case
         try:
@@ -115,6 +115,7 @@ class RPmanager:
         name,race,sex,look,clothes = author_infos
         post = {
                 "date in game":ig_date,
+                "weather":weather,
                 "title":title,
                 "author":name,
                 "race":race,
@@ -155,6 +156,10 @@ class RPmanager:
         oldest = self.get_oldest_date()
         return self.rp["posts"][oldest][0]["date in game"]
 
+    def get_weather(self):
+        oldest = self.get_oldest_date()
+        return self.rp["posts"][oldest][0]["weather"]
+
     def get_title(self):
         if not self.rp["title"]:
             self._set_title()
@@ -179,6 +184,9 @@ class RPmanager:
 
     def get_post_ig_date(self, date, index):
         return self.rp["posts"][date][index]["date in game"]
+
+    def get_post_weather(self, date, index):
+        return self.rp["posts"][date][index]["weather"]
 
     def get_post_author_infos(self, date, index):
         name = self.rp["posts"][date][index]["author"]
@@ -293,6 +301,7 @@ class RPmanager:
                 ("rp_title", "text", "not null"),
                 ("irl_date", "date", "not null"),
                 ("ig_date", "date", "not null"),
+                ("weather", "date", "not null"),
                 ("post_title", "text", "not null"),
                 ("author", "text", "not null"),
                 ("race", "text", "not null"),
@@ -326,6 +335,7 @@ class RPmanager:
                 "rp_title",
                 "irl_date",
                 "ig_date",
+                "weather",
                 "post_title",
                 "author", "race", "sex", "look", "clothes",
                 "language",
@@ -340,6 +350,7 @@ class RPmanager:
         for irl_date in posts.keys():
             for index in posts[irl_date].keys():
                 ig_date = self.get_post_ig_date(irl_date, index)
+                weather = self.get_post_weather(irl_date, index)
                 retrieved_date = self.get_post_retrieved_date(irl_date, index)
                 post_title = self.get_post_title(irl_date, index)
                 author, race, sex, look, clothes = self.get_post_author_infos(irl_date, index)
@@ -349,6 +360,7 @@ class RPmanager:
                         rp_title,
                         irl_date,
                         ig_date,
+                        weather,
                         post_title,
                         author, race, sex, look, clothes,
                         language,
