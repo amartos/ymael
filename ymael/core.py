@@ -81,7 +81,7 @@ class Ymael:
                     if self._extract.rp.are_new_posts():
                         u, t, count, authors = self._extract.rp.get_news_infos()
                         new_rps.append((url, title, count, authors))
-                        self._extract.rp.close_db() # avoid ClosedDB issues
+                    self._extract.rp.close_db() # avoid ClosedDB issues
 
             if new_rps or null_notif:
                 Notifier(new_rps, self._filemanager.ymael_icon, null_notif)

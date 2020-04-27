@@ -91,8 +91,12 @@ class Database:
 ###############################################################################
 
     def close(self):
-        self._db_conn.commit()
-        self._db_conn.close()
+        try:
+            self._db_conn.commit()
+            self._db_conn.close()
+        except sqlite3.ProgrammingError:
+            # if database is already closed
+            pass
 
     def _create_new_db(self, db_script):
         self._db_curs.executescript(db_script)
