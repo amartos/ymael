@@ -47,10 +47,10 @@ class RPmanager:
             self._db.search_rows("posts", [("rp_title", title)])
             results = self._db.get_results()
             while results != None:
-                rp_title, irl_date, ig_date, post_title, name, race, sex, \
+                rp_title, irl_date, ig_date, weather, post_title, name, race, sex, \
                         look, clothes, language, text, retrieved_date = results
                 author_infos = (name,race,sex,look,clothes)
-                self.create_post(irl_date, ig_date, post_title, author_infos, language, text, date=retrieved_date)
+                self.create_post(irl_date, ig_date, weather, post_title, author_infos, language, text, date=retrieved_date)
                 results = self._db.get_results()
         else:
             return False
@@ -217,7 +217,7 @@ class RPmanager:
         self._db.search_rows("posts", conditions, column_order="irl_date", reverse=True)
         results = self._db.get_results()
         while results != None:
-            rp_title, irl_date, ig_date, post_title, name, race, sex, \
+            rp_title, irl_date, ig_date, weather, post_title, name, race, sex, \
                     look, clothes, language, text, retrieved_date = results
             self._new_posts += 1
             new_authors.append(name)
