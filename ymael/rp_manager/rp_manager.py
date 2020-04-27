@@ -205,6 +205,9 @@ class RPmanager:
     def get_post_retrieved_date(self, date, index):
         return self.rp["posts"][date][index]["retrieved"]
 
+    def get_news_infos(self):
+        return self._url, self.get_title(), self._new_posts, self._last_authors
+
 ###############################################################################
 # Private functions
 ###############################################################################
