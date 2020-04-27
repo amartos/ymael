@@ -10,25 +10,29 @@ import fake_useragent
 from ..rp_manager import RPmanager
 
 
-class EdenyaV4:
+class EdenyaV4Parser:
 
-    def __init__(self, url, secrets, rps_dir):
-        self._url = url
+    def __init__(self, urls, secrets, rps_dir):
         self._define_urls()
         self._login(secrets)
+        self.rps = {}
 
-        self._parse_html(url)
-        # TODO: this is not enough stringeant
-        assert "Posté le :" in self._parsed.body.text
+        for url in urls:
+            self._url = url
+            self._parse_html(url)
+            # TODO: this is not enough stringeant
+            assert "Posté le :" in self._parsed.body.text
 
-        self.rp = RPmanager(rps_dir, "%Y-%m-%d %H:%M:%S")
+            self._rp = RPmanager(rps_dir, "%Y-%m-%d %H:%M:%S")
 
-        self._parse_rp()
-        if not self._already_in:
-            location = self._parse_location()
-            self.rp.set_metadata(location)
+            self._parse_rp()
+            if not self._already_in:
+                location = self._parse_location()
+                self._rp.set_metadata(location)
 
-        self.rp.save()
+            self._rp.save()
+            self.rps[url] = self._rp
+
         self._session.close()
 
     def _define_urls(self):
@@ -75,9 +79,9 @@ class EdenyaV4:
         rp_title = self._parse_post_title(posts[0])
         ig_date = self._parse_ig_date()
         weather = self._parse_weather()
-        self._already_in = self.rp.load(rp_title)
+        self._already_in = self._rp.load(rp_title)
         for index,item in enumerate(posts):
-            self.rp.create_post(
+            self._rp.create_post(
                     self._parse_post_date(item),
                     ig_date,
                     weather,

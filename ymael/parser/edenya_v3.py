@@ -7,27 +7,30 @@ import re
 from ..rp_manager import RPmanager
 
 
-class EdenyaV3:
+class EdenyaV3Parser:
 
-    def __init__(self, url, secrets, rps_dir):
-        self.rp = RPmanager(rps_dir, date_format="%d/%m/%Y %H:%M", url=url)
-
-        self.treat_url(url)
+    def __init__(self, urls, secrets, rps_dir):
+        self.treat_url(urls[0])
         self._login(secrets)
+        self.rps = {}
 
-        self._parse_html(url)
-        assert self._check_if_rp()
-        self._parse_rp_urls()
+        for url in urls:
+            self._rp = RPmanager(rps_dir, date_format="%d/%m/%Y %H:%M", url=url)
 
-        self._parse_rps(page=1)
-        if not self.rp.is_posts_empty():
-            title = self.rp.get_title()
-            is_prev_rps = self.rp.load(title, url)
-            if not is_prev_rps:
-                self.rp.set_metadata(self._parse_location())
+            self._parse_html(url)
+            assert self._check_if_rp(), url
+            self._parse_rp_urls()
 
-        self._parse_rps()
-        self.rp.save()
+            self._parse_rps(page=1)
+            if not self._rp.is_posts_empty():
+                title = self._rp.get_title()
+                is_prev_rps = self._rp.load(title, url)
+                if not is_prev_rps:
+                    self._rp.set_metadata(self._parse_location())
+
+            self._parse_rps()
+            self._rp.save()
+            self.rps[url] = self._rp
 
     def treat_url(self, url):
         domain_url = url.split("_vahal/index.php")[0]
@@ -84,7 +87,7 @@ class EdenyaV3:
                 stop = self._parse_page(url) # True means a known rp is encountered
 
     # This function returns True if it reached a rp that is already known.
-    # Otherwise it returns False. The rp is not stored in the self.rp
+    # Otherwise it returns False. The rp is not stored in the self._rp
     # structure.
     def _parse_page(self, url):
         self._parse_html(url)
@@ -94,10 +97,10 @@ class EdenyaV3:
             title = self._parse_post_title(item)
             if title:
                 ig_date, irl_date = self._parse_post_date(item)
-                if self.rp.is_post_already_in(irl_date, title):
+                if self._rp.is_post_already_in(irl_date, title):
                     return True
                 weather = "?"
-                self.rp.create_post(
+                self._rp.create_post(
                         irl_date,
                         ig_date,
                         weather,
@@ -128,7 +131,7 @@ class EdenyaV3:
             # author's name. The parentheses are the only common option.
             if "(" in name:
                 real_name = name.split("(")[-1].replace(")","")
-                name = self.rp.convert_name_dm(real_name)
+                name = self._rp.convert_name_dm(real_name)
         if not "Aucune information" in infos:
             part = re.split("<\/{0,}b>|<br>",infos)
             part = [i for i in part if i and not "ShowHelpPerso" in i and not ":" in i]

@@ -38,6 +38,8 @@ class RPmanager:
     def save(self):
         self._reference_rp()
         self._save_posts()
+        self._get_new_posts_infos()
+        self._db.close()
 
     def load(self, title, url=""):
         if self._db.is_row("rps", [("title", title)]):
@@ -58,9 +60,6 @@ class RPmanager:
             return False
         return True
 
-    def close_db(self):
-        self._db.close()
-
 ## Booleans
 
     def is_posts_empty(self):
@@ -76,7 +75,6 @@ class RPmanager:
         return False
 
     def are_new_posts(self):
-        self._get_new_posts_infos()
         return bool(self._new_posts)
 
 ## Converters
