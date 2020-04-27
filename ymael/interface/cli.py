@@ -42,10 +42,10 @@ class CommandLine:
             )
 
         args = parser.parse_args()
-        if args.url:
-            assert validate_url(args.url), "url not good"
-        else:
-            args.url = ""
+
+        self._url = ""
+        if args.url and is_url_valid(args.url):
+            self._url = args.url
 
         self.login = args.login
         self.password = get_secrets(self.login)
