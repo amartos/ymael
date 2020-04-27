@@ -30,7 +30,8 @@ class Ymael:
             self._export(url, filename)
         else:
             null_notif = self._cli.get_null_notif()
-            self._watch(null_notif, url)
+            delete_url = self._cli.get_delete_url()
+            self._watch(null_notif, url, delete_url)
 
     def _export(self, url, filename):
         self._extraction([url])
@@ -38,7 +39,7 @@ class Ymael:
         if not self._extract[domain].rps[url].is_posts_empty():
             PanExporter(filename, self._extract[domain].rps[url])
 
-    def _watch(self, null_notif, url, delete=False)
+    def _watch(self, null_notif, url, delete):
         self._watcher = Watcher(self._filemanager.rps)
         if url and not delete:
             self._set_in_watcher(url)

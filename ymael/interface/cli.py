@@ -35,6 +35,11 @@ class CommandLine:
                 action="store_true"
             )
         parser.add_argument(
+                "-d", "--delete_url",
+                help="remove url from watched urls database",
+                action="store_true"
+            )
+        parser.add_argument(
                 "-p", "--password",
                 help="change stored password ; "\
                 "set on if login is not found in the keyring",
@@ -56,6 +61,7 @@ class CommandLine:
         # if not export, notify
         self._export = False
         self._null_notif = args.null_notif
+        self._delete_url = args.delete_url
         if self._url and args.filename:
             self._filename = args.filename
             self._export = True
@@ -71,6 +77,9 @@ class CommandLine:
 
     def get_null_notif(self):
         return self._null_notif
+
+    def get_delete_url(self):
+        return self._delete_url
 
     def do_export(self):
         return self._export
