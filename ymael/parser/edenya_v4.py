@@ -42,7 +42,7 @@ class EdenyaV4Parser:
         self._login_url = domain_url+"accueil/"
 
     def _login(self, secrets):
-        load = {**secrets,"action":"login","remember":"true"}
+        load = {"pseudo":secrets[0],"password":secrets[1],"action":"login","remember":"true"}
         ua = fake_useragent.UserAgent()
         header = {
             "Host":"v4.edenya.net",

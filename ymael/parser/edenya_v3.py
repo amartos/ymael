@@ -39,7 +39,9 @@ class EdenyaV3Parser:
 
     def _login(self, secrets):
         with requests.Session() as self._session:
-            self._post = self._session.post(self._post_login, data=secrets)
+            load = {"pseudo":secrets[0],"password":secrets[1]}
+            self._post = self._session.post(self._post_login, data=load)
+            assert self._post.ok
 
     def _parse_html(self, url="", raw_html=""):
         if not raw_html and url:

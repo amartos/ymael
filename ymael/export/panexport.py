@@ -9,26 +9,11 @@ from .markdown import MDMaker
 
 class PanExporter:
 
-    @classmethod
-    def pdf(cls, *args, **kwargs):
-        cls._format = "pdf"
-        return cls(*args, **kwargs)
-
-    @classmethod
-    def odt(cls, *args, **kwargs):
-        cls._format = "odt"
-        return cls(*args, **kwargs)
-
-    @classmethod
-    def docx(cls, *args, **kwargs):
-        cls._format = "docx"
-        return cls(*args, **kwargs)
-
-    @classmethod
-    def md(cls, *args, **kwargs):
-        return cls(*args, **kwargs)
-
     def __init__(self, filename, rps):
+        filename, ext = os.path.splitext(filename)
+        if not ext in [".pdf",".odt",".docx"]:
+            ext = ".md"
+
         add_before = """---
 documentclass: article
 margin-left: 2.5cm
@@ -42,7 +27,7 @@ fontfamilyoptions: sfdefault
 
 """
         try:
-            output = filename+"."+self._format
+            output = filename+ext
             tmp_file = tempfile.mkstemp(text=True)[1]
             MDMaker(tmp_file, rps, add_before)
             pypandoc.convert_file(tmp_file, self._format, format="markdown",

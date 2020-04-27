@@ -47,17 +47,30 @@ class CommandLine:
         if args.url and is_url_valid(args.url):
             self._url = args.url
 
-        self.login = args.login
-        self.password = get_secrets(self.login)
-        if not self.password or args.password:
-            self.password = set_secrets(self.login)
+        login = args.login
+        password = get_secrets(login)
+        if not password or args.password:
+            password = set_secrets(login)
+        self._secrets = (login, password)
 
-        self.url = args.url
-        self.filename = args.filename
-        self.null_notif = args.null_notif
+        # if not export, notify
+        self._export = False
+        self._null_notif = args.null_notif
+        if self._url and args.filename:
+            self._filename = args.filename
+            self._export = True
 
-    def treat(self, exporter, notifier):
-        if self.filename:
-            exporter(self.url, self.filename)
-        else:
-            notifier(self.null_notif, self.url)
+    def get_url(self):
+        return self._url
+
+    def get_filename(self):
+        return self._filename
+
+    def get_secrets(self):
+        return self._secrets
+
+    def get_null_notif(self):
+        return self._null_notif
+
+    def do_export(self):
+        return self._export
