@@ -6,7 +6,7 @@ from .database import Database
 
 class RPmanager:
 
-    def __init__(self, rps_dir, date_format):
+    def __init__(self, rps_dir, date_format, url=""):
         self.rp = {
                 "title":"",
                 "location":"",
@@ -19,6 +19,8 @@ class RPmanager:
 
         self._dm_suffix = "_DM"
         self._rps_dir = rps_dir
+
+        self._url = url
 
         self._new_posts = 0
         self._last_authors = list()
@@ -37,7 +39,7 @@ class RPmanager:
         self._reference_rp()
         self._save_posts()
 
-    def load(self, title):
+    def load(self, title, url=""):
         if self._db.is_row("rps", [("title", title)]):
             result = self._db.get_row("rps", [("title", title)])
             creation_date, title, location, dms = result
