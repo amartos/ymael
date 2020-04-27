@@ -3,6 +3,7 @@
 import pypandoc
 import os
 import tempfile
+import shutil
 
 from .markdown import MDMaker
 
@@ -13,6 +14,7 @@ class PanExporter:
         filename, ext = os.path.splitext(filename)
         if not ext in [".pdf",".odt",".docx"]:
             ext = ".md"
+        filename = filename+ext
 
         add_before = """---
 documentclass: article
@@ -26,13 +28,11 @@ fontfamilyoptions: sfdefault
 ---
 
 """
+        tmp_file = tempfile.mkstemp(text=True)[1]
+        MDMaker(tmp_file, rps, add_before)
         try:
-            output = filename+ext
-            tmp_file = tempfile.mkstemp(text=True)[1]
-            MDMaker(tmp_file, rps, add_before)
             pypandoc.convert_file(tmp_file, self._format, format="markdown",
-                    outputfile=output,
+                    outputfile=filename,
                     extra_args=['--pdf-engine', 'xelatex'])
         except AttributeError:
-            md_file = filename+".md"
-            MDMaker(md_file, rps)
+            shutil.move(tmp_file, filename)
