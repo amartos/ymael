@@ -47,20 +47,24 @@ class EdenyaV4:
             "Accept-Language":"fr-FR,en;q=0.7,en-US;q=0.3",
             "Accept-Encoding":"gzip, deflate, br",
             "Referer":"https://v4.edenya.net/accueil/",
-            "Content-Type":"application/x-www-form-urlencoded",
-            "Content-Length":"65",
-            "Origin":"https://v4.edenya.net",
             "DNT":"1",
             "Connection":"keep-alive",
             "Upgrade-Insecure-Requests":"1",
             "TE":"Trailers"
         }
+        supp_header = {
+            "Content-Type":"application/x-www-form-urlencoded",
+            "Content-Length":"65",
+            "Origin":"https://v4.edenya.net",
+        }
 
         self._session = requests.Session()
         atexit.register(self._session.close)
-        self._response = self._session.post(self._login_url, data=load, verify=True, headers=header)
+        self._response = self._session.post(self._login_url, data=load, verify=True, headers={**header,**supp_header})
         assert self._response.ok
-        self._session.get("https://v4.edenya.net/_game/vahal/")
+        self._session.get("https://v4.edenya.net/accueil/", headers=header)
+        self._session.get("https://v4.edenya.net/jouer/", headers=header)
+        self._session.get("https://v4.edenya.net/_game/vahal/accueil/", headers=header)
 
     def _parse_html(self, url):
         raw_html = self._session.get(url).text
@@ -97,7 +101,7 @@ class EdenyaV4:
         weather_box = self._get_context_box()
         weather_box = weather_box.find("div", id="cadran")
         weather_box = str(weather_box).split("</p>")[1].replace("</div>", "").replace("\n", "")
-        weather_split = [i for i in weather_box.split("<br/>") if i]
+        weather_split = [i for i in weather_box.split("<br/>") if i and "strong" in i]
         weather = []
         for i in weather_split:
             w = i.split(" : </strong>")
