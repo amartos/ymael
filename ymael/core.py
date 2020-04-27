@@ -84,7 +84,7 @@ class Ymael:
                     self._extract.rp.close_db() # avoid ClosedDB issues
 
             if new_rps or null_notif:
-                Notifier(new_rps, self._filemanager.ymael_icon, null_notif)
+                Notifier(new_rps, self._filemanager.ymael_icon)
 
     def _extraction(self, url):
         for key in self._parsers:
