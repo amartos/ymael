@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os, platform
+
 from .parser import *
 from .notification import *
 from .export import *
-from .files import *
 from .interface import *
 from .rp_manager import *
 
@@ -11,7 +12,18 @@ from .rp_manager import *
 class Ymael:
 
     def __init__(self, cli=True):
-        self._filemanager = FileManager()
+        if platform.system() == "Windows":
+            local = os.getenv('%LOCALAPPDATA%')
+            self._data_folder = local+"/ymael/"
+        else:
+            self._data_folder = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))+"/ymael/"
+
+        self._rps_folder = self._data_folder+"rps/"
+        for folder in [self._data_folder,self._rps_folder]:
+            if not os.path.exists(folder):
+                os.mkdir(folder)
+
+        self._ymael_icon = ""
 
         self._parsers = {
                 "www.edenya.net":EdenyaV3Parser,
@@ -40,7 +52,7 @@ class Ymael:
             PanExporter(filename, self._extract[domain].rps[url])
 
     def _watch(self, null_notif, url, delete):
-        self._watcher = Watcher(self._filemanager.rps)
+        self._watcher = Watcher(self._rps_folder)
         if url and not delete:
             self._set_in_watcher(url)
         elif url and delete:
@@ -71,7 +83,7 @@ class Ymael:
                     new_rps.append((url, title, count, authors))
 
         if new_rps or null_notif:
-            Notifier(new_rps, self._filemanager.ymael_icon)
+            Notifier(new_rps, self._ymael_icon)
 
     def _extraction(self, urls):
         site_urls = {}
@@ -86,7 +98,7 @@ class Ymael:
             self._extract[domain] = self._parsers[domain](
                     urls,
                     self._secrets,
-                    self._filemanager.rps
+                    self._rps_folder
                     )
 
     def _get_domain(self, url):
