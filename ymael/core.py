@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os, platform
+import logging
+logger = logging.getLogger(__name__)
 
 from .parser import *
 from .notification import *
@@ -11,17 +12,8 @@ from .rp_manager import *
 
 class Ymael:
 
-    def __init__(self, cli=True):
-        if platform.system() == "Windows":
-            local = os.getenv('%LOCALAPPDATA%')
-            self._data_folder = local+"/ymael/"
-        else:
-            self._data_folder = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))+"/ymael/"
-
-        self._rps_folder = self._data_folder+"rps/"
-        for folder in [self._data_folder,self._rps_folder]:
-            if not os.path.exists(folder):
-                os.mkdir(folder)
+    def __init__(self, rps_folder, cli=True):
+        self._rps_folder = rps_folder
 
         self._ymael_icon = ""
 
@@ -105,4 +97,5 @@ class Ymael:
         for key in self._parsers.keys():
             if key in url:
                 return key
-        return None
+
+        raise ValueError("url not supported: %s", url)

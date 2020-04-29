@@ -6,6 +6,9 @@ import re
 import json
 import atexit
 import fake_useragent
+import logging
+logger = logging.getLogger(__name__)
+
 
 from ..rp_manager import RPmanager
 
@@ -21,7 +24,8 @@ class EdenyaV4Parser:
             self._url = url
             self._parse_html(url)
             # TODO: this is not enough stringeant
-            assert "Posté le :" in self._parsed.body.text
+            if not "Posté le :" in self._parsed.body.text:
+                raise ValueError("Returned page is not a RP.")
 
             self._rp = RPmanager(rps_dir, "%Y-%m-%d %H:%M:%S")
 
@@ -65,7 +69,8 @@ class EdenyaV4Parser:
         self._session = requests.Session()
         atexit.register(self._session.close)
         self._response = self._session.post(self._login_url, data=load, verify=True, headers={**header,**supp_header})
-        assert self._response.ok
+        if not self._response.ok:
+            raise ValueError("Could not connect to Edenya v4.")
         self._session.get("https://v4.edenya.net/accueil/", headers=header)
         self._session.get("https://v4.edenya.net/jouer/", headers=header)
         self._session.get("https://v4.edenya.net/_game/vahal/accueil/", headers=header)

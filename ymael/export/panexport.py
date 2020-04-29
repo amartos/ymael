@@ -4,6 +4,9 @@ import pypandoc
 import os
 import tempfile
 import shutil
+import logging
+logger = logging.getLogger(__name__)
+
 
 from .markdown import MDMaker
 
@@ -12,8 +15,10 @@ class PanExporter:
 
     def __init__(self, filename, rps):
         filename, ext = os.path.splitext(filename)
-        if not ext in [".pdf",".odt",".docx"]:
+        if not ext in [".pdf",".odt",".docx",".md"]:
+            logger.warning("Output format %s not supported. Switching to .md", ext)
             ext = ".md"
+
         filename = filename+ext
 
         add_before = """---
@@ -35,4 +40,5 @@ fontfamilyoptions: sfdefault
                     outputfile=filename,
                     extra_args=['--pdf-engine', 'xelatex'])
         except AttributeError:
-            shutil.move(tmp_file, filename)
+            shutil.move(tmp_file, filename+".md")
+            raise

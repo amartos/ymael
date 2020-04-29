@@ -3,6 +3,8 @@
 import os
 import sqlite3
 import atexit
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Database:

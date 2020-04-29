@@ -3,6 +3,9 @@
 import requests
 import bs4
 import re
+import logging
+logger = logging.getLogger(__name__)
+
 
 from ..rp_manager import RPmanager
 
@@ -18,7 +21,8 @@ class EdenyaV3Parser:
             self._rp = RPmanager(rps_dir, date_format="%d/%m/%Y %H:%M", url=url)
 
             self._parse_html(url)
-            assert self._check_if_rp(), url
+            if not self._check_if_rp():
+                raise ValueError("returned page is not a RP: %s", url)
             self._parse_rp_urls()
 
             self._parse_rps(page=1)
@@ -41,7 +45,8 @@ class EdenyaV3Parser:
         with requests.Session() as self._session:
             load = {"pseudo":secrets[0],"password":secrets[1]}
             self._post = self._session.post(self._post_login, data=load)
-            assert self._post.ok
+            if not self._post.ok:
+                raise ValueError("Logging to Edenya v3 failed.")
 
     def _parse_html(self, url="", raw_html=""):
         if not raw_html and url:

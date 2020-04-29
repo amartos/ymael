@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 
 def set_secrets(login, password=""):
     import keyring
@@ -26,5 +29,8 @@ def is_url_valid(url):
             r'(?::\d+)?' # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE
         )
+    valid = bool(re.match(url_regex, url))
+    if not valid:
+        raise ValueError("url not valid: %s", url)
 
-    return bool(re.match(url_regex, url))
+    return valid
