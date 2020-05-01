@@ -1,5 +1,9 @@
 requests
 bs4
 notify2
+dbus-python
 pypandoc
-lxml
+fake_useragent
+keyring
+PyQt5
+PyGObject

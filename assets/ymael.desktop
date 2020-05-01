@@ -1,0 +1,7 @@
+[Desktop Entry]
+Exec=sh -c "/opt/ymael/ymael -g"
+Name=Ymael
+Icon=/opt/ymael/share/icons/ymael.png
+Type=Application
+Categories=Application
+Terminal=False

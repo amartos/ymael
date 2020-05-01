@@ -25,58 +25,92 @@ class CommandLine(Core):
 
     def _define_args_parser(self):
         self._args_parser = argparse.ArgumentParser(self,
-                description="Extract rp infos from the specified URL. "\
-                "If FILENAME path is given, it exports the topic to it. "\
-                "Else, it adds the URL to a watch list, which notifies the "
-                "user for new posts."
+                description="""
+Watch for new posts and extract rp infos from the specified URL or stored URLs
+in the database. If URL and FILENAME are given, it exports the given URL's RP
+into FILENAME with formatting. If only URL is given, it adds it to the watch
+database. If no URL or FILENAME is given, the program will look for new posts
+in the watched URLs list and will notify the user if there are some.
+
+Important reminder: the first time you export a RP or set a URL to the watcher
+from a given domain, you NEED to set the LOGIN:PASSWORD associated to the
+domain by using the -a option. See the -a option's help for details.
+""",
+        usage="""
+to look for new posts (needs login and password set for all watched domains):
+ymael [-n] [-l LOG_LEVEL]
+
+to add or remove a url listed in the watched database:
+ymael -u URL [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
+
+to export a URL to FILENAME:
+ymael -u URL -f FILENAME [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
+
+to launch the graphic interface:
+ymael -g [-l LOG_LEVEL]
+"""
             )
 
         self._args_parser.add_argument(
                 "-a", "--account-secrets",
-                help="Login and password of account to use. If it has not been already defined, it is mandatory. "\
-                "The last couple login/password used will be remembered and used as default if this option is not "\
-                "used afterwards. The default can be changed with this option." \
-                "The secrest are given in the form of login:password. You also need to provide a url of the "\
-                "associated website via the -u option.",
-            )
+                help="""
+Argument is passed as LOGIN:PASSWORDS. Both are stored securely in the system's
+keyring. For more details see the python's keyring package help.
+
+If a LOGIN:PASSWORD couple has not been already defined for a given domain,
+this option is mandatory the first time a URL from the domain is passed. The
+last LOGIN:PASSWORD couple stored will then be used as default for the domain
+until this option is re-used to set a new couple.
+
+If you want to change the LOGIN:PASSWORD for a given domain, use this option
+while either deleting a URL from the watched database, or setting a URL into
+watched database (even one that is already watched, which will be eventually
+ignored but will trigger the change), or exporting a RP from this domain.
+""")
 
         self._args_parser.add_argument(
                 "-u", "--url",
-                help="url of the topic to be exported/added in watch list, "\
-                "which does not need to be the url of the first page of the "\
-                "topic"
-            )
+                help="""
+URL of the topic to be exported/added in watch list, which does not need to be
+the url of the first page of the topic if there are multiple pages. This option
+is mandatory to set login and passwords via the -a option.
+""")
+
         self._args_parser.add_argument(
                 "-f", "--filename",
-                help="export the rp topic to the filename in "\
-                "one of the supported formats: pdf, odt, docx, md"
-            )
+                help="""
+Export the RP topic to the filename in one of the supported formats: pdf, odt,
+docx, or markdown (md).
+""")
+
         self._args_parser.add_argument(
                 "-n", "--null_notif",
-                help="notify even if there are no new posts",
-                action="store_true"
-            )
+                help="Notify even if there are no new posts.",
+                action="store_true")
+
         self._args_parser.add_argument(
                 "-d", "--delete_url",
-                help="remove url from watched urls database",
-                action="store_true"
-            )
+                help="Remove the URL given with -u from watched URLs.",
+                action="store_true")
+
         self._args_parser.add_argument(
                 "-l", "--log_level",
-                help="Set log level. Values can either be 1 (WARNING), 2 (INFO) or 3 (DEBUG)."
-            )
+                help="""
+Set log level. Values can either be 1 (WARNING), 2 (INFO) or 3 (DEBUG).
+""")
 
         self._args_parser.add_argument(
                 "-g", "--gui",
-                help="Launch graphic user interface. Except for logging level and "\
-                "start minimized, all other options are ignored.",
-                action="store_true"
-            )
+                help="""
+Launch graphic user interface. Except for logging level and start minimized,
+all other options are ignored.
+""",
+                action="store_true")
+
         self._args_parser.add_argument(
                 "-m", "--minimized",
                 help="Do not open window, only start in icon tray.",
-                action="store_true"
-            )
+                action="store_true")
 
     def _parse_args(self):
         self._args = self._args_parser.parse_args()
