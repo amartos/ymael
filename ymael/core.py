@@ -52,7 +52,7 @@ class Ymael:
         else:
             self._notify(null_notif)
 
-    def _set_in_watcher(self):
+    def _set_in_watcher(self, url):
         self._extraction([url])
         domain = self._get_domain(url)
         retrieved_date = self._extract[domain].rps[url].get_current_date()
