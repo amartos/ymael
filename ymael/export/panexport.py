@@ -43,6 +43,7 @@ fontfamilyoptions: sfdefault
             pypandoc.convert_file(tmp_file, ext.lstrip("."), format="markdown",
                     outputfile=filename,
                     extra_args=['--pdf-engine', 'xelatex'])
+            os.remove(tmp_file)
         except AttributeError:
             shutil.move(tmp_file, filename+".md")
             raise
