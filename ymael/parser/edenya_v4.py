@@ -128,8 +128,11 @@ class EdenyaV4Parser:
         return date_box
 
     def _parse_post_date(self, item):
-        irl_date = item.find("span", {"class":"date"})
-        irl_date = irl_date.find("span", {"class":"normal"}).text.strip()
+        dates = item.find("span", {"class":"date"})
+        try:
+            irl_date = dates.find("span", {"class":"normal"}).text.strip()
+        except AttributeError:
+            irl_date = dates.find("span", {"class":"new"}).text.strip()
         return irl_date
 
     def _parse_post_author_infos(self, item):
