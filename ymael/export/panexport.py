@@ -36,7 +36,7 @@ fontfamilyoptions: sfdefault
         tmp_file = tempfile.mkstemp(text=True)[1]
         MDMaker(tmp_file, rps, add_before)
         try:
-            pypandoc.convert_file(tmp_file, self._format, format="markdown",
+            pypandoc.convert_file(tmp_file, ext.lstrip("."), format="markdown",
                     outputfile=filename,
                     extra_args=['--pdf-engine', 'xelatex'])
         except AttributeError:
