@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 from ..rp_manager import RPmanager
 
 
-class EdenyaV4Parser:
+class EdenyaParser:
 
     def __init__(self, urls, secrets, rps_dir):
         self._define_urls()

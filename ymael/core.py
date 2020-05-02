@@ -18,8 +18,7 @@ class Ymael:
         self._ymael_icon = ""
 
         self._parsers = {
-                "www.edenya.net":EdenyaV3Parser,
-                "v4.edenya.net":EdenyaV4Parser,
+                "edenya.net":EdenyaParser,
             }
 
         if cli:
