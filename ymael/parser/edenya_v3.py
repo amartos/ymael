@@ -30,7 +30,10 @@ class EdenyaV3Parser:
                 title = self._rp.get_title()
                 is_prev_rps = self._rp.load(title, url)
                 if not is_prev_rps:
-                    self._rp.set_metadata(self._parse_location())
+                    location = self._parse_location()
+                else:
+                    location = self._rp.get_location()
+            self._rp.set_metadata(location)
 
             self._parse_rps()
             self._rp.save()

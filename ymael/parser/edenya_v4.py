@@ -32,7 +32,9 @@ class EdenyaV4Parser:
             self._parse_rp()
             if not self._already_in:
                 location = self._parse_location()
-                self._rp.set_metadata(location)
+            else:
+                location = self._rp.get_location()
+            self._rp.set_metadata(location)
 
             self._rp.save()
             self.rps[url] = self._rp
