@@ -23,7 +23,7 @@ Par %s
 
 Le %s (%s)
 
-Météo: %s
+%s
 
 __%s__
 
