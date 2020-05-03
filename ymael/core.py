@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import re
+import keyring
+import getpass
 import logging
 logger = logging.getLogger(__name__)
 
 from .parser import *
 from .notification import *
 from .export import *
-from .interface import *
 from .rp_manager import *
 
 
-class Ymael:
+class Core:
 
-    def __init__(self, rps_folder, cli=True):
+    def __init__(self, rps_folder, login_file, cli=True):
         self._rps_folder = rps_folder
+        self._default_login_file = login_file
+        self._cli = cli
 
         self._ymael_icon = ""
 
@@ -21,29 +25,70 @@ class Ymael:
                 "edenya.net":EdenyaParser,
             }
 
-        if cli:
-            self._launch_cli()
+    def get_default_login(self):
+        try:
+            with open(self._default_login_file, "r") as f:
+                login = f.readlines()[0].strip()
+        except FileNotFoundError:
+            login = None
+        return login
 
-    def _launch_cli(self):
-        self._cli = CommandLine()
-        self._secrets = self._cli.get_secrets()
-        url = self._cli.get_url()
-        if self._cli.do_export():
-            filename = self._cli.get_filename()
-            self._export(url, filename)
-        else:
-            null_notif = self._cli.get_null_notif()
-            delete_url = self._cli.get_delete_url()
-            self._watch(null_notif, url, delete_url)
+    def set_default_login(self, login):
+        with open(self._default_login_file, "w") as f:
+            f.write(login)
 
-    def _export(self, url, filename):
-        self._extraction([url])
-        domain = self._get_domain(url)
-        if not self._extract[domain].rps[url].is_posts_empty():
-            PanExporter(filename, self._extract[domain].rps[url])
+    def set_secrets(self, login, password=""):
+        if not password:
+            password = getpass.getpass()
+        keyring.set_password('Ymael', login, password)
+        return password
 
-    def _watch(self, null_notif, url, delete):
+    def get_secrets(self, login):
+        return keyring.get_password("Ymael", login)
+
+    def is_url_valid(self, url):
+        # see https://stackoverflow.com/questions/7160737/python-how-to-validate-a-url-in-python-malformed-or-not/7160778#7160778
+        url_regex = re.compile(
+                r'^(?:http|ftp)s?://' # http:// or https://
+                r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+                r'localhost|' #localhost...
+                r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+                r'(?::\d+)?' # optional port
+                r'(?:/?|[/?]\S+)$', re.IGNORECASE
+            )
+        valid = bool(re.match(url_regex, url))
+        if not valid and self._cli:
+            raise ValueError("url not valid: %s", url)
+
+        return valid
+
+    def export(self, urls, filename="", path_ext=tuple()):
+        if not filename and not path_ext:
+            raise ValueError("Filename or (path & extension) is mandatory.")
+        self._extraction(urls)
+        for url in urls:
+            domain = self._get_domain(url)
+            if not self._extract[domain].rps[url].is_posts_empty():
+                if not filename and path_ext:
+                    path, ext = path_ext
+                    name = self._extract[domain].rps[url].get_current_date(string=True)
+                    name += "_"+self._extract[domain].rps[url].get_title()
+                    filename = path+name+ext
+                PanExporter(filename, self._extract[domain].rps[url])
+                filename = None
+
+    def supported_extensions(self):
+        return PanExporter.supported_extensions()
+
+    def init_watcher(self):
         self._watcher = Watcher(self._rps_folder)
+
+    def watch(self, null_notif, url, delete):
+        try:
+            self._watcher.watch
+        except NameError:
+            self.init_watcher()
+
         if url and not delete:
             self._set_in_watcher(url)
         elif url and delete:

@@ -13,9 +13,13 @@ from .markdown import MDMaker
 
 class PanExporter:
 
+    @staticmethod
+    def supported_extensions():
+        return [".pdf",".odt",".docx",".md"]
+
     def __init__(self, filename, rps):
         filename, ext = os.path.splitext(filename)
-        if not ext in [".pdf",".odt",".docx",".md"]:
+        if not ext in self.supported_extensions():
             logger.warning("Output format %s not supported. Switching to .md", ext)
             ext = ".md"
 

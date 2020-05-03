@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 
+import logging
+import os, sys, platform
+import notify2
+from datetime import datetime
+
+from ymael import CommandLine
+
 
 def notify_crash(log_file):
-    import notify2
-
     notify2.init("Ymael")
     notifier = notify2.Notification("Ymael: a fatal error occured.","See logs in {}".format(log_file))
     notifier.show()
     return
 
 def main():
-    import os, platform
-    import logging
-    from datetime import datetime
-
-    from ymael.core import Ymael
-
     if platform.system() == "Windows":
         local = os.getenv('%LOCALAPPDATA%')
         data_folder = local+"/ymael/"
     else:
         data_folder = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))+"/ymael/"
 
+    login_file = data_folder+"default_login"
     logs_folder = data_folder+"/logs/"
     rps_folder = data_folder+"rps/"
     for folder in [data_folder,rps_folder,logs_folder]:
@@ -35,14 +35,17 @@ def main():
     logger = logging.getLogger(__name__)
 
     try:
-        Ymael(rps_folder)
+        CommandLine(rps_folder, login_file, clean_logs)
     except Exception:
         logger.exception("A fatal error occurred.")
-        notify_crash(log_file)
+        if "-g" in sys.argv:
+            notify_crash(log_file)
         exit(1)
 
+def clean_logs():
     # remove empty log file
     logging.shutdown()
+    log_file = logging.getLoggerClass().root.handlers[0].baseFilename
     if os.stat(log_file).st_size == 0:
         os.remove(log_file)
 

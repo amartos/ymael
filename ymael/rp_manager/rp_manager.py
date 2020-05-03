@@ -140,7 +140,9 @@ class RPmanager:
 
 ## Get infos
 
-    def get_current_date(self):
+    def get_current_date(self, string=False):
+        if string:
+            return self._now
         return datetime.strptime(self._now, self.get_storage_date_format())
 
     def get_date_format(self):

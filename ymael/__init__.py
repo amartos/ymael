@@ -1,1 +1,1 @@
-from .core import Ymael
+from .cli import CommandLine

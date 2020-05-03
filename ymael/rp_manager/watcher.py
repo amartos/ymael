@@ -30,6 +30,7 @@ class Watcher:
     def unwatch(self, url):
         conditions = [("url", url)]
         self._db.delete_rows("watch", conditions)
+        del self.watcher[url]
 
     def are_urls_to_check(self):
         self._check_dates()
@@ -37,6 +38,12 @@ class Watcher:
 
     def get_urls_to_check(self):
         return self._to_retrieve
+
+    def get_storage_date_format(self):
+        return self._db.get_date_format()
+
+    def is_watched(self, url):
+        return url in self.watcher.keys()
 
     def _check_dates(self):
         self._to_retrieve = []
