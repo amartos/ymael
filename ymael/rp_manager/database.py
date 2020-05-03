@@ -72,7 +72,7 @@ class Database:
         table_name = self._escape_str(table_name)
         primary_keys = [self._escape_str(k) for k in primary_keys]
 
-        query = "create table "+table_name+"("
+        query = "create table if not exists "+table_name+"("
         for c in columns:
             c = [self._escape_str(c[0]), *c[1:]]
             query += " ".join(c)+", "
