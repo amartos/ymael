@@ -83,7 +83,7 @@ class Core:
     def watch(self, null_notif=False, url="", delete=False):
         try:
             self._watcher.watch
-        except NameError:
+        except (NameError, AttributeError):
             self.init_watcher()
 
         if url and not delete:
