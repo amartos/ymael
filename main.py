@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+VERSION="smart_goblin"
+
 import logging
 import os, sys, platform
 import notify2
@@ -38,7 +40,7 @@ def main():
             os.mkdir(folder)
 
     now = datetime.strftime(datetime.now(), "%Y%m%d-%H%M%S")
-    log_file = logs_folder+now
+    log_file = logs_folder+now+"_"+VERSION
     str_format = "[%(asctime)s] %(name)s (%(levelname)s): %(message)s"
     logging.basicConfig(filename=log_file, level=logging.WARNING, format=str_format)
     logger = logging.getLogger(__name__)
