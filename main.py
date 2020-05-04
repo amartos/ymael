@@ -40,7 +40,7 @@ def main():
         logger.exception("A fatal error occurred.")
         if "-g" in sys.argv:
             notify_crash(log_file)
-        exit(1)
+        sys.exit(1)
 
 def clean_logs():
     # remove empty log file

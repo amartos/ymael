@@ -32,7 +32,7 @@ class GraphicInterface(QMainWindow):
 class Tabs(Core, QWidget):
 
     def __init__(self, parent, rps_folder, login_file):
-        Core.__init__(self, rps_folder, login_file, cli=False)
+        Core.__init__(self, rps_folder, cli=False)
         self.init_watcher()
 
         QWidget.__init__(self, parent)
@@ -233,16 +233,13 @@ class Tabs(Core, QWidget):
 
         self._parameters_tab.layout.addWidget(self._secrets_section)
 
-        login = self.get_default_login()
-        if login:
-            password = self.get_secrets(login)
-            self._secrets = (login, password)
-            self._login_field.setText(login)
-            self._password_field.setText(password)
+        domain = self.get_supported_domains()[0] # only Edenya is supported for now
+        login, password = self._secrets[domain].get_secrets()
+        self._login_field.setText(login)
+        self._password_field.setText(password)
 
     def _save_login_password(self):
         login = self._login_field.text()
         password = self._password_field.text()
-        self.set_secrets(login, password)
-        self.set_default_login(login)
-        self._secrets = (login, password)
+        domain = self.get_supported_domains()[0] # only Edenya is supported for now
+        self.set_domain_secrets((login, password), domain)

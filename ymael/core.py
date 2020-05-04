@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-import keyring
 import getpass
 import logging
 logger = logging.getLogger(__name__)
@@ -10,13 +9,13 @@ from .parser import *
 from .notification import *
 from .export import *
 from .rp_manager import *
+from .secrets import *
 
 
 class Core:
 
-    def __init__(self, rps_folder, login_file, cli=True):
+    def __init__(self, rps_folder, cli=True):
         self._rps_folder = rps_folder
-        self._default_login_file = login_file
         self._cli = cli
 
         self._ymael_icon = ""
@@ -25,26 +24,24 @@ class Core:
                 "edenya.net":EdenyaParser,
             }
 
-    def get_default_login(self):
-        try:
-            with open(self._default_login_file, "r") as f:
-                login = f.readlines()[0].strip()
-        except FileNotFoundError:
-            login = None
-        return login
+        self._secrets = {}
+        for domain in self._parsers.keys():
+            self._secrets[domain] = Secrets(domain)
 
-    def set_default_login(self, login):
-        with open(self._default_login_file, "w") as f:
-            f.write(login)
+    def get_supported_domains(self):
+        return sorted(list(self._parsers.keys()))
 
-    def set_secrets(self, login, password=""):
-        if not password:
-            password = getpass.getpass()
-        keyring.set_password('Ymael', login, password)
-        return password
+    def get_domain_secrets(self, domain):
+        return self._secrets[domain].get_secrets()
 
-    def get_secrets(self, login):
-        return keyring.get_password("Ymael", login)
+    def set_domain_secrets(self, secrets, domain="", url=""):
+        if not domain and url:
+            domain = self._get_domain(url)
+        elif not domain and not url:
+            raise ValueError("Provide either a url or a domain to set secrets.")
+        elif not all(secrets):
+            raise ValueError("Provide both login and password to set secrets.")
+        self._secrets[domain].set_secrets(secrets)
 
     def is_url_valid(self, url):
         # see https://stackoverflow.com/questions/7160737/python-how-to-validate-a-url-in-python-malformed-or-not/7160778#7160778
@@ -133,7 +130,7 @@ class Core:
         for domain, urls in site_urls.items():
             self._extract[domain] = self._parsers[domain](
                     urls,
-                    self._secrets,
+                    self.get_domain_secrets(domain),
                     self._rps_folder
                     )
 

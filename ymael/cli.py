@@ -32,10 +32,12 @@ class CommandLine(Core):
             )
 
         self._args_parser.add_argument(
-                "-a", "--account-login",
-                help="Login of account to use. If it has not been already defined, it is mandatory. "\
-                "The last login used will be remembered and used as default if this option is not "\
-                "used afterwards. The default can be changed with this option.",
+                "-a", "--account-secrets",
+                help="Login and password of account to use. If it has not been already defined, it is mandatory. "\
+                "The last couple login/password used will be remembered and used as default if this option is not "\
+                "used afterwards. The default can be changed with this option." \
+                "The secrest are given in the form of login:password. You also need to provide a url of the "\
+                "associated website via the -u option.",
             )
 
         self._args_parser.add_argument(
@@ -57,12 +59,6 @@ class CommandLine(Core):
         self._args_parser.add_argument(
                 "-d", "--delete_url",
                 help="remove url from watched urls database",
-                action="store_true"
-            )
-        self._args_parser.add_argument(
-                "-p", "--password",
-                help="change stored password ; "\
-                "set on if login is not found in the keyring",
                 action="store_true"
             )
         self._args_parser.add_argument(
@@ -112,17 +108,12 @@ class CommandLine(Core):
             self._url = self._args.url
 
     def _define_secrets(self):
-        login = self._args.account_login
-        if not login:
-            login = self.get_default_login()
-            if not login:
-                raise ValueError("You need to provide a login. See --help for more infos.")
-        else:
-            self.set_default_login(login)
-        password = self.get_secrets(login)
-        if not password or self._args.password:
-            password = self.set_secrets(login)
-        self._secrets = (login, password)
+        if self._args.account_secrets:
+            secrets = tuple(self._args.account_secrets.split(":"))
+            if all(secrets) and len(secrets) == 2 and self._url:
+                self.set_domain_secrets(secrets, url=self._url)
+            else:
+                raise ValueError("You need to provide a login, password and url to set secrets.")
 
     def _export_or_notify(self):
         # if not export, notify
