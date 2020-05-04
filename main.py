@@ -22,11 +22,14 @@ def main():
         exe_dir = os.path.dirname(os.path.abspath(__file__))
         icon_path = exe_dir+"/assets/icons/ymael.png"
 
-    if platform.system() == "Windows":
+    system = platform.system()
+    if system == "Windows":
         local = os.getenv('%LOCALAPPDATA%')
         data_folder = local+"/ymael/"
-    else:
+    elif system == "Linux":
         data_folder = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))+"/ymael/"
+    else:
+        raise RuntimeError("OS not supported. Please report to gitea.com/amartos/ymael/issues to ask for support.")
 
     logs_folder = data_folder+"/logs/"
     rps_folder = data_folder+"rps/"
