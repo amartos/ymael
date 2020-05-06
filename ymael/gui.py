@@ -6,6 +6,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 from PyQt5.QtWidgets import *
+import gi
+gi.require_version('GdkPixbuf', '2.0')
+from gi.repository import GdkPixbuf
+
 from functools import partial
 
 from .core import Core
