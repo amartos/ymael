@@ -129,6 +129,10 @@ class Core:
 
         self._extract = {}
         for domain, urls in site_urls.items():
+            secrets = self.get_domain_secrets(domain)
+            if not all(secrets):
+                logger.warning("No login and password defined for {}".format(domain))
+                continue
             self._extract[domain] = self._parsers[domain](
                     urls,
                     self.get_domain_secrets(domain),
