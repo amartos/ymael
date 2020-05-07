@@ -80,7 +80,7 @@ class Core:
     def init_watcher(self):
         self._watcher = Watcher(self._rps_folder)
 
-    def watch(self, null_notif, url, delete):
+    def watch(self, null_notif=False, url="", delete=False):
         try:
             self._watcher.watch
         except NameError:
@@ -91,6 +91,7 @@ class Core:
         elif url and delete:
             self._watcher.unwatch(url)
         else:
+            logger.info("Watching db URLs.")
             self._notify(null_notif)
 
     def _set_in_watcher(self, url):

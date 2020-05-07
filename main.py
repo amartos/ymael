@@ -15,13 +15,19 @@ def notify_crash(log_file):
     return
 
 def main():
+    if getattr(sys, 'frozen', False):
+        exe_dir = os.path.dirname(sys.executable)
+        icon_path = exe_dir+"/share/ymael.png"
+    else:
+        exe_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = exe_dir+"/assets/icons/ymael.png"
+
     if platform.system() == "Windows":
         local = os.getenv('%LOCALAPPDATA%')
         data_folder = local+"/ymael/"
     else:
         data_folder = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))+"/ymael/"
 
-    login_file = data_folder+"default_login"
     logs_folder = data_folder+"/logs/"
     rps_folder = data_folder+"rps/"
     for folder in [data_folder,rps_folder,logs_folder]:
@@ -35,7 +41,7 @@ def main():
     logger = logging.getLogger(__name__)
 
     try:
-        CommandLine(rps_folder, login_file, clean_logs)
+        CommandLine(rps_folder, icon_path, clean_logs)
     except Exception:
         logger.exception("A fatal error occurred.")
         if "-g" in sys.argv:

@@ -9,13 +9,13 @@ from .gui import GraphicInterface
 
 class CommandLine(Core):
 
-    def __init__(self, rps_folder, login_file, exit_func):
-        super().__init__(rps_folder, login_file)
+    def __init__(self, rps_folder, icon_path, exit_func):
+        super().__init__(rps_folder)
         self._define_args_parser()
         self._parse_args()
 
         if self._gui:
-            GraphicInterface(rps_folder, login_file, exit_func)
+            GraphicInterface(rps_folder, icon_path, exit_func, self._minimized)
         else:
             if self._do_export:
                 self.export([self._url], self._filename)
@@ -68,8 +68,13 @@ class CommandLine(Core):
 
         self._args_parser.add_argument(
                 "-g", "--gui",
-                help="Launch graphic user interface. Except for logging level, "\
-                "all other options are ignored.",
+                help="Launch graphic user interface. Except for logging level and "\
+                "start minimized, all other options are ignored.",
+                action="store_true"
+            )
+        self._args_parser.add_argument(
+                "-m", "--minimized",
+                help="Do not open window, only start in icon tray.",
                 action="store_true"
             )
 
@@ -81,9 +86,14 @@ class CommandLine(Core):
             self._define_url()
             self._define_secrets()
             self._export_or_notify()
+        else:
+            self._start_minimized()
 
     def _gui_or_cli(self):
         self._gui = self._args.gui
+
+    def _start_minimized(self):
+        self._minimized = self._args.minimized
 
     def _define_logging_level(self):
         if self._args.log_level:
