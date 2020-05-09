@@ -108,15 +108,14 @@ class Tabs(QWidget):
     def _watch_url(self):
         url = self._url_field.text()
         if self._core.is_url_valid(url) and not self._core._watcher.is_watched(url):
-            self._core.watch(False, url, False)
+            self._core.watch(False, [url], False)
             self._update_watch_table()
             self._url_field.clear()
 
     def _unwatch_url(self):
         urls = self._get_selected_urls()
         if urls:
-            for url in urls:
-                self._core.watch(False, url, True)
+            self._core.watch(False, urls, True)
             self._update_watch_table()
 
     def _get_folder_path(self):

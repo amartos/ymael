@@ -18,9 +18,9 @@ class CommandLine(Core):
             GraphicInterface(rps_folder, icon_path, exit_func, self._minimized)
         else:
             if self._do_export:
-                self.export([self._url], self._filename)
+                self.export(self._urls, self._filename)
             else:
-                self.watch(self._null_notif, self._url, self._delete_url)
+                self.watch(self._null_notif, self._urls, self._delete_url)
             exit_func()
 
     def _define_args_parser(self):
@@ -69,11 +69,14 @@ ignored but will trigger the change), or exporting a RP from this domain.
 """)
 
         self._args_parser.add_argument(
-                "-u", "--url",
+                "-u", "--urls",
                 help="""
-URL of the topic to be exported/added in watch list, which does not need to be
-the url of the first page of the topic if there are multiple pages. This option
-is mandatory to set login and passwords via the -a option.
+URLs of each topic to be exported/added in watch list, separated by a space.
+They do not need to be the urls of the first page of each topic if there are
+multiple pages in them.  This option is mandatory to set login and passwords
+via the -a option. Beware that the login:password couple will be used for the
+domain of the first URL given only, thus all URLs should be from the same
+domain.
 """)
 
         self._args_parser.add_argument(
@@ -117,7 +120,7 @@ all other options are ignored.
         self._define_logging_level()
         self._gui_or_cli()
         if not self._gui:
-            self._define_url()
+            self._define_urls()
             self._define_secrets()
             self._export_or_notify()
         else:
@@ -146,16 +149,18 @@ all other options are ignored.
             elif level == 3:
                 logging.getLogger(__name__).parent.setLevel(logging.DEBUG)
 
-    def _define_url(self):
-        self._url = ""
-        if self._args.url and self.is_url_valid(self._args.url):
-            self._url = self._args.url
+    def _define_urls(self):
+        self._urls = []
+        if self._args.urls:
+            urls = self._args.urls.split(" ")
+            self._urls = [url for url in urls if self.is_url_valid(url)]
 
+    # TODO: define secrets for each URL even if different
     def _define_secrets(self):
         if self._args.account_secrets:
             secrets = tuple(self._args.account_secrets.split(":"))
-            if all(secrets) and len(secrets) == 2 and self._url:
-                self.set_domain_secrets(secrets, url=self._url)
+            if all(secrets) and len(secrets) == 2 and self._urls:
+                self.set_domain_secrets(secrets, url=self._urls[0])
             else:
                 raise ValueError("You need to provide a login, password and url to set secrets.")
 
@@ -165,9 +170,9 @@ all other options are ignored.
         self._null_notif = self._args.null_notif
 
         self._delete_url = self._args.delete_url
-        if self._delete_url and not self._url:
+        if self._delete_url and not self._urls:
             raise ValueError("No url to delete specified.")
 
         self._filename = self._args.filename
-        if self._url and self._filename:
+        if self._urls and self._filename:
             self._do_export = True

@@ -19,18 +19,20 @@ class Watcher:
         self._check_watch_table()
         self._load_watched()
 
-    def watch(self, retrieved_date, title, url, replace=False):
+    def watch(self, infos, replace=False):
         column_names = ["last_checked", "title", "url"]
-        values = [(retrieved_date, title, url)]
         # this ignores if the entry is already in
-        self._db.insert_rows("watch", column_names, values, replace)
-        if not url in self.watcher.keys():
-            self.watcher[url] = (retrieved_date, title)
+        self._db.insert_rows("watch", column_names, infos, replace)
+        for value in infos:
+            retrieved_date, title, url = value
+            if not url in self.watcher.keys():
+                self.watcher[url] = (retrieved_date, title)
 
-    def unwatch(self, url):
-        conditions = [("url", url)]
-        self._db.delete_rows("watch", conditions)
-        del self.watcher[url]
+    def unwatch(self, urls):
+        conditions = [("url", url) for url in urls]
+        self._db.delete_rows("watch", conditions, use_or=True)
+        for url in urls:
+            del self.watcher[url]
 
     def are_urls_to_check(self):
         self._check_dates()

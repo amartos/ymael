@@ -80,41 +80,47 @@ class Core:
     def init_watcher(self):
         self._watcher = Watcher(self._rps_folder)
 
-    def watch(self, null_notif=False, url="", delete=False):
+    def watch(self, null_notif=False, urls=[], delete=False):
         try:
             self._watcher.watch
         except (NameError, AttributeError):
             self.init_watcher()
 
-        if url and not delete:
-            self._set_in_watcher(url)
-        elif url and delete:
-            self._watcher.unwatch(url)
+        if urls and not delete:
+            self._set_in_watcher(urls)
+        elif urls and delete:
+            self._watcher.unwatch(urls)
         else:
             logger.info("Watching db URLs.")
             self._notify(null_notif)
 
-    def _set_in_watcher(self, url):
-        self._extraction([url])
-        domain = self._get_domain(url)
-        retrieved_date = self._extract[domain].rps[url].get_current_date()
-        title = self._extract[domain].rps[url].get_title()
-        self._watcher.watch(retrieved_date, title, url)
+    def _set_in_watcher(self, urls):
+        self._extraction(urls)
+        infos = []
+        for url in urls:
+            domain = self._get_domain(url)
+            retrieved_date = self._extract[domain].rps[url].get_current_date()
+            title = self._extract[domain].rps[url].get_title()
+            infos.append((retrieved_date, title, url))
+        self._watcher.watch(infos)
 
     def _notify(self, null_notif):
         new_rps = []
         if self._watcher.are_urls_to_check():
             urls = self._watcher.get_urls_to_check()
             self._extraction(urls)
+            infos = []
             for url in urls:
                 domain = self._get_domain(url)
                 retrieved_date = self._extract[domain].rps[url].get_current_date()
                 title = self._extract[domain].rps[url].get_title()
+                infos.append((retrieved_date, title, url))
                 # update new retrieved date
-                self._watcher.watch(retrieved_date, title, url, replace=True)
                 if self._extract[domain].rps[url].are_new_posts():
                     u, t, count, authors = self._extract[domain].rps[url].get_news_infos()
                     new_rps.append((url, title, count, authors))
+
+        self._watcher.watch(infos, replace=True)
 
         if new_rps or null_notif:
             Notifier(new_rps, self._ymael_icon)
