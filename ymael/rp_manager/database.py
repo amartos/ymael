@@ -129,7 +129,7 @@ class Database:
             operator = " or "
         for c in conditions:
             s = self._escape_str(c[0])
-            query += c[0]+"=?"+operator
+            query += s+"=?"+operator
         query = query[:-len(operator)]+ordering+";" # remove last operator and close
 
         args = tuple([c[1] for c in conditions])
