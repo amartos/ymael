@@ -3,7 +3,6 @@
 import requests
 import bs4
 import re
-import json
 import atexit
 import fake_useragent
 import logging

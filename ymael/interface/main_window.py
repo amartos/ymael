@@ -8,6 +8,7 @@ from datetime import datetime
 from functools import partial
 from PyQt5.QtWidgets import *
 
+# This import is unused but still needed to fix PyQt pixbuf error
 import gi
 gi.require_version('GdkPixbuf', '2.0')
 from gi.repository import GdkPixbuf

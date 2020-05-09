@@ -3,7 +3,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QThread, QObject, pyqtSignal
 
 
 class Timer(QObject):
