@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 
 VERSION="smart_goblin"
+LICENSE_SHORT="""
+Ymael version {} Copyright (C) 2020 Alexandre Martos
+
+This program comes with ABSOLUTELY NO WARRANTY. This is free
+software, and you are welcome to redistribute it under certain
+conditions. For details see the LICENSE file also available at:
+
+https://gitea.com/amartos/ymael
+""".format(VERSION)
 
 import logging
 import os, sys, platform
@@ -40,13 +49,16 @@ def main():
             os.mkdir(folder)
 
     now = datetime.strftime(datetime.now(), "%Y%m%d-%H%M%S")
-    log_file = logs_folder+now+"_"+VERSION
-    str_format = "[%(asctime)s] %(name)s (%(levelname)s): %(message)s"
+    log_file = logs_folder+now
+    str_format = "[%(asctime)s] [{}] %(name)s (%(levelname)s): %(message)s".format(VERSION)
     logging.basicConfig(filename=log_file, level=logging.WARNING, format=str_format)
     logger = logging.getLogger(__name__)
 
+    license_file = exe_dir+"/LICENSE"
+    with open(license_file, "r") as f:
+        LICENSE=f.read()
     try:
-        CommandLine(rps_folder, icon_path, clean_logs)
+        CommandLine((LICENSE,LICENSE_SHORT,VERSION), rps_folder, icon_path, clean_logs)
     except Exception:
         logger.exception("A fatal error occurred.")
         if "-g" in sys.argv:

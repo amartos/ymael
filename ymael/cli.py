@@ -9,13 +9,17 @@ from .gui import GraphicInterface
 
 class CommandLine(Core):
 
-    def __init__(self, rps_folder, icon_path, exit_func):
+    def __init__(self, infos, rps_folder, icon_path, exit_func):
         super().__init__(rps_folder)
+        null,self._license_short,self._version = infos
+
         self._define_args_parser()
         self._parse_args()
 
-        if self._gui:
-            GraphicInterface(rps_folder, icon_path, exit_func, self._minimized)
+        if self._args.version:
+            print("Ymael version {}".format(self._version))
+        elif self._gui:
+            GraphicInterface(infos, rps_folder, icon_path, exit_func, self._minimized)
         else:
             if self._do_export:
                 self.export(self._urls, self._filename)
@@ -48,8 +52,13 @@ ymael -u URL -f FILENAME [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
 
 to launch the graphic interface:
 ymael -g [-l LOG_LEVEL]
-"""
-            )
+
+{}""".format(self._license_short))
+
+        self._args_parser.add_argument(
+                "-v", "--version",
+                help="show the software version.",
+                action="store_true")
 
         self._args_parser.add_argument(
                 "-a", "--account-secrets",

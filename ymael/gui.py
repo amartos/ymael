@@ -4,7 +4,7 @@ import sys
 import logging
 logger = logging.getLogger(__name__)
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication,QMessageBox
 
 from .core import Core
 from .interface import *
@@ -12,9 +12,10 @@ from .interface import *
 
 class GraphicInterface(QApplication):
 
-    def __init__(self, rps_folder, icon_path, exit_func, minimized=False):
+    def __init__(self, infos, rps_folder, icon_path, exit_func, minimized=False):
         super().__init__(sys.argv)
 
+        self._license,self._license_short,null = infos
         self._core = Core(rps_folder, cli=False)
         self.setQuitOnLastWindowClosed(False)
 
@@ -36,8 +37,19 @@ class GraphicInterface(QApplication):
                 "Fichier":{
                     "Quitter":self.exit
                     },
+                "Aide":{
+                    "À propos":self.about
+                    },
                 }
         self._window = MainWindow(self._core, menu_bar)
+
+    def about(self):
+        about_box = QMessageBox()
+        about_box.setIcon(QMessageBox.Information)
+        about_box.setWindowTitle("À propos")
+        about_box.setText(self._license_short)
+        about_box.setDetailedText(self._license)
+        about_box.exec()
 
     def _gui_exit(self, exit_func):
         self.exec()
