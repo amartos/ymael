@@ -1,16 +1,10 @@
 NAME=ymael
 
-all: compile
-
-install: requirements compile
-	@sudo mv dist/$(NAME) /opt/
-	@cp assets/ymael.desktop ~/.local/share/applications/
+all: requirements compile
 
 compile:
 	@pip3 install -q --exists-action i --user pyinstaller
-	@pyinstaller --clean -y --onedir main.spec
-	@cp assets/icons/ymael.png dist/$(NAME)/share/
-	@ln -s /usr/share/icons dist/$(NAME)/share/
+	@pyinstaller --clean -y main.spec
 
 requirements:
 	@sudo apt install -y python3-pip pandoc texlive texlive-latex-base texlive-latex-recommended texlive-xetex

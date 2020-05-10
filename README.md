@@ -39,20 +39,20 @@ n'oubliez pas d'adapter la commande à votre distribution).
 
 #### Méthode rapide
 
-Le fichier Makefile est paramétré pour installer les prérequis, compiler le
-programme en un exécutable et l'installer dans le dossier `/opt`.  Attention, les
-installations des prérequis sont basés sur un OS type debian (via apt).
+Le fichier Makefile est paramétré pour installer les prérequis et compiler le
+programme en un exécutable unique. Attention, les installations des prérequis
+sont basés sur un OS type debian (via apt).
 
 Utilisez simplement:
 
 ```sh
-make install
+make
 ```
 
-Le prgramme sera disponible dans le dossier `/opt`:
+L'exécutable sera disponible dans le dossier `dist`:
 
 ```sh
-/opt/ymael/ymael --help
+./dist/ymael --help
 ```
 
 #### Détaillée
@@ -60,14 +60,11 @@ Le prgramme sera disponible dans le dossier `/opt`:
 Installez les prérequis:
 
 ```sh
-# toute cette suite de commande est incluse dans le Makefile
-# make requirements
-
 # prérequis pour PyGObject
 sudo apt install -y python3-gi libcairo2-dev libgirepository1.0-dev gir1.2-gtk-3.0
 # prérequis pour l'installation des librairies avec requirements.txt
 sudo apt install -y python3-pip
-# installation du logiciel
+# installation des pré-requis pip du logiciel
 git clone https://gitea.com/amartos/ymael
 cd ymael
 pip3 install --exists-action i --user -r requirements.txt
@@ -84,20 +81,10 @@ Vous pouvez aussi compiler le programme en un exécutable via cette suite de
 commandes:
 
 ```sh
-# le Makefile résume ces commandes en une:
-# make compile
-
-# installation prérequise de pyinstaller
-pip3 install --exists-action i --user pyinstaller
-# compilation
-pyinstaller --clean -y --onedir main.spec
-# installation des icones
-cp assets/icons/ymael.png dist/ymael/share/
-ln -s /usr/share/icons dist/ymael/share/
+pyinstaller --clean -y main.spec
 ```
 
-Le dossier `./dist/ymael` contiendra alors tout le programme, et l'exécutable
-est le fichier `./dist/ymael/ymael`
+L'exécutable sera alors disponible dans le sous-dossier `dist`.
 
 ### Installation *via* l'archive tarball
 
