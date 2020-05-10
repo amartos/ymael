@@ -7,17 +7,16 @@ logger = logging.getLogger(__name__)
 from PyQt5.QtWidgets import QApplication,QMessageBox
 from PyQt5.QtGui import QIcon
 
-from .core import Core
-from .interface import *
+from .qtgui import *
 
 
 class GraphicInterface(QApplication):
 
-    def __init__(self, infos, rps_folder, icon_path, exit_func, minimized=False):
+    def __init__(self, infos, core_instance, icon_path, exit_func, minimized=False):
         super().__init__(sys.argv)
 
         self._license,self._license_short,null = infos
-        self._core = Core(rps_folder, cli=False)
+        self._core = core_instance
         self.setQuitOnLastWindowClosed(False)
         self._icon = QIcon(icon_path)
         self.setWindowIcon(self._icon)

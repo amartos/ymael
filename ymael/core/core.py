@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import re
+import os,re
 import logging
 logger = logging.getLogger(__name__)
 
 from .parser import *
-from .notification import *
 from .export import *
 from .rp_manager import *
 from .secrets import *
@@ -13,9 +12,9 @@ from .secrets import *
 
 class Core:
 
-    def __init__(self, rps_folder, cli=True):
+    def __init__(self, rps_folder, notifier):
         self._rps_folder = rps_folder
-        self._cli = cli
+        self._notifier = notifier
 
         self._ymael_icon = ""
 
@@ -69,7 +68,7 @@ class Core:
                     path, ext = path_ext
                     name = self._extract[domain].rps[url].get_current_date(string=True)
                     name += "_"+self._extract[domain].rps[url].get_title()
-                    filename = path+name+ext
+                    filename = os.path.join(path,name+ext)
                 PanExporter(filename, self._extract[domain].rps[url])
                 filename = None
 
@@ -122,7 +121,24 @@ class Core:
         self._watcher.watch(infos, replace=True)
 
         if new_rps or null_notif:
-            Notifier(new_rps, self._ymael_icon)
+            title,message = self._build_message(new_rps)
+            self._notifier.send(title,message)
+
+    def _build_message(self, new_rps):
+        total = 0
+        smiley = "😭"
+        message = "Patience... 😉"
+        if new_rps:
+            smiley = "😄"
+            messages = list()
+            for news in new_rps:
+                url, rp_title, new_posts, authors = news
+                total += new_posts
+                site = self._get_domain(url)
+                messages.append("{} : {} dans \"{}\" (par {})".format(site, new_posts, rp_title, ", ".join(authors)))
+            message = "\n".join(messages)
+        title = "{} nouveau(x) post(s) ! {}".format(total, smiley)
+        return title, message
 
     def _extraction(self, urls):
         site_urls = {}

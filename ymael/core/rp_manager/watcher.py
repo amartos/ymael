@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import logging
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,7 @@ class Watcher:
         self.watcher = {}
         self._to_retrieve = []
 
-        self._db = Database(rps_dir, "watched.db")
+        self._db = Database(os.path.join(rps_dir, "watched.db"))
         self._now = datetime.now()
         self._check_watch_table()
         self._load_watched()

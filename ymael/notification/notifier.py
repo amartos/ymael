@@ -1,39 +1,35 @@
 # -*- coding: utf-8 -*-
 
-import notify2
 import logging
 logger = logging.getLogger(__name__)
 
 
 class Notifier:
 
-    def __init__(self, infos, icon):
-        self._infos = infos
-        self._icon = icon
-        self._total = 0
-        self._smiley = "😭"
-        self._message = "Patience... 😉"
-        if self._infos:
-            self._build_message()
-        self._show_popup()
+    def __init__(self, system, soft_name, icon):
+        self.system = system
+        self.soft = soft_name
+        self.icon = icon
+        if system == "Linux":
+            self._define_linux_notifier()
+        elif system == "Windows":
+            self._define_windows_notifier()
+            pass
 
-    def _build_message(self):
-        self._smiley = "😄"
-        messages = list()
-        for news in self._infos:
-            url, rp_title, new_posts, authors = news
-            self._total += new_posts
-            # TODO: better parsing of urls to get domains
-            site = url.split("//")[1].replace("www.", "").split(".")[0]
-            messages.append("{} : {} dans \"{}\" (par {})".format(site, new_posts, rp_title, ", ".join(authors)))
-        self._message = "\n".join(messages)
+    def send(self, title, message):
+        pass
 
-    def _show_popup(self):
+    def _define_linux_notifier(self):
+        logger.info("Using notify2 as notifier lib")
+        import notify2
         notify2.init("Ymael")
-        notifier = notify2.Notification(
-                "{} nouveau(x) post(s) ! {}".format(self._total, self._smiley),
-                self._message,
-                self._icon
-            )
-        notifier.show()
-        return
+        def send(self, title, message):
+            notifier = notify2.Notification(
+                    title+"\n"+message,
+                    self.icon
+                )
+            notifier.show()
+            return
+
+    def _define_windows_notifier(self):
+        pass

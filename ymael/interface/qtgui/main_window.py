@@ -122,7 +122,6 @@ class Tabs(QWidget):
     def _get_folder_path(self):
         self._folder_path = QFileDialog.getExistingDirectory(self, "Choisir un répertoire de destination")
         if self._folder_path:
-            self._folder_path += "/"
             self._folder_path_field.setText(self._folder_path)
 
     def _change_extension(self, extension):

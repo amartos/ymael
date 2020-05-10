@@ -9,13 +9,12 @@ logger = logging.getLogger(__name__)
 
 class Database:
 
-    def __init__(self, datas_dir, filename, db_script=""):
+    def __init__(self, db_path, db_script=""):
         self._date_format = "%Y-%m-%d %H:%M:%S"
-        self._db_path = datas_dir+filename
-        self._db_conn = sqlite3.connect(self._db_path)
+        self._db_conn = sqlite3.connect(db_path)
         self._db_curs = self._db_conn.cursor()
         atexit.register(self.close)
-        if not os.path.exists(self._db_path) and db_script:
+        if not os.path.exists(db_path) and db_script:
             self._create_new_db(db_script)
 
 ###############################################################################

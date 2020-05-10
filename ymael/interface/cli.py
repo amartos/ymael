@@ -3,29 +3,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-from .core import Core
-from .gui import GraphicInterface
+class CommandLine:
 
-
-class CommandLine(Core):
-
-    def __init__(self, infos, rps_folder, icon_path, exit_func):
-        super().__init__(rps_folder)
+    def __init__(self, infos, core_instance):
         null,self._license_short,self._version = infos
+        self._core = core_instance
 
         self._define_args_parser()
         self._parse_args()
 
+    def is_gui(self):
+        return self._gui, self._minimized
+
+    def run(self):
         if self._args.version:
             print("Ymael version {}".format(self._version))
-        elif self._gui:
-            GraphicInterface(infos, rps_folder, icon_path, exit_func, self._minimized)
         else:
             if self._do_export:
-                self.export(self._urls, self._filename)
+                self._core.export(self._urls, self._filename)
             else:
-                self.watch(self._null_notif, self._urls, self._delete_url)
-            exit_func()
+                self._core.watch(self._null_notif, self._urls, self._delete_url)
 
     def _define_args_parser(self):
         self._args_parser = argparse.ArgumentParser(self,
@@ -127,19 +124,12 @@ all other options are ignored.
     def _parse_args(self):
         self._args = self._args_parser.parse_args()
         self._define_logging_level()
-        self._gui_or_cli()
+        self._gui = self._args.gui
+        self._minimized = self._args.minimized
         if not self._gui:
             self._define_urls()
             self._define_secrets()
             self._export_or_notify()
-        else:
-            self._start_minimized()
-
-    def _gui_or_cli(self):
-        self._gui = self._args.gui
-
-    def _start_minimized(self):
-        self._minimized = self._args.minimized
 
     def _define_logging_level(self):
         if self._args.log_level:
@@ -162,14 +152,14 @@ all other options are ignored.
         self._urls = []
         if self._args.urls:
             urls = self._args.urls.split(" ")
-            self._urls = [url for url in urls if self.is_url_valid(url)]
+            self._urls = [url for url in urls if self._core.is_url_valid(url)]
 
     # TODO: define secrets for each URL even if different
     def _define_secrets(self):
         if self._args.account_secrets:
             secrets = tuple(self._args.account_secrets.split(":"))
             if all(secrets) and len(secrets) == 2 and self._urls:
-                self.set_domain_secrets(secrets, url=self._urls[0])
+                self._core.set_domain_secrets(secrets, url=self._urls[0])
             else:
                 raise ValueError("You need to provide a login, password and url to set secrets.")
 

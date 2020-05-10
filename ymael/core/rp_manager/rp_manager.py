@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import logging
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class RPmanager:
         self._new_posts = 0
         self._last_authors = list()
 
-        self._db = Database(rps_dir, "rps.db")
+        self._db = Database(os.path.join(rps_dir, "rps.db"))
         self._now = datetime.strftime(datetime.now(), self.get_storage_date_format())
         self._check_tables()
 
