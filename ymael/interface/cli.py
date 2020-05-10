@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 class CommandLine:
 
     def __init__(self, infos, core_instance):
-        null,self._license_short,self._version = infos
+        self._license,self._license_short,self._version = infos
         self._core = core_instance
 
         self._define_args_parser()
@@ -18,6 +18,8 @@ class CommandLine:
     def run(self):
         if self._args.version:
             print("Ymael version {}".format(self._version))
+        elif self._args.license:
+            print("Ymael version {}\n\n{}".format(self._version, self._license))
         else:
             if self._do_export:
                 self._core.export(self._urls, self._filename)
@@ -55,6 +57,11 @@ ymael -g [-l LOG_LEVEL]
         self._args_parser.add_argument(
                 "-v", "--version",
                 help="show the software version.",
+                action="store_true")
+
+        self._args_parser.add_argument(
+                "-w", "--license",
+                help="show the software license.",
                 action="store_true")
 
         self._args_parser.add_argument(

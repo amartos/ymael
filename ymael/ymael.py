@@ -71,7 +71,8 @@ Ymael's icon Copyright (C) 2020 Xen
 
 This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you
 are welcome to redistribute it under certain conditions. For details see the
-LICENSE file also available at:
+LICENSE file with the -w/--license command line option, or via the "help>about"
+menu in the graphic interface, or the file available at:
 
 https://gitea.com/amartos/ymael
 """.format(self.VERSION)
