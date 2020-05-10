@@ -3,6 +3,7 @@
 VERSION="smart_goblin"
 LICENSE_SHORT="""
 Ymael version {} Copyright (C) 2020 Alexandre Martos
+Ymael's icon Copyright (C) 2020 Xen
 
 This program comes with ABSOLUTELY NO WARRANTY. This is free
 software, and you are welcome to redistribute it under certain

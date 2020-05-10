@@ -6,7 +6,6 @@ logger = logging.getLogger(__name__)
 from functools import partial
 from PyQt5.QtWidgets import QSystemTrayIcon
 from PyQt5.QtCore import QThread
-from PyQt5.QtGui import QIcon
 
 from .custom_menu import CustomMenu
 from .timer import Timer
@@ -14,9 +13,9 @@ from .timer import Timer
 
 class TrayIcon(QSystemTrayIcon):
 
-    def __init__(self, core_instance, icon_path, menu_dict={}, parent=None):
+    def __init__(self, core_instance, qicon, menu_dict={}, parent=None):
         super().__init__(parent)
-        self.setIcon(QIcon(icon_path))
+        self.setIcon(qicon)
         self.setVisible(True)
         self._core = core_instance
 

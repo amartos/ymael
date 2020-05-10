@@ -3,6 +3,11 @@ Role-Play. Il a été développé pour compenser l'absence de notification de
 nouveaux posts du site de *PBF* `Edenya.net`, ainsi que pour sauvegarder les
 posts que le site supprimait après un certain temps.
 
+## Licences
+
+Ymael est sous license GPLv3. L'icône, elle aussi sous license GPLv3, a été
+crée par Xen.
+
 ## Installation
 
 Pour le moment, seuls les OS type linux sont supportés.

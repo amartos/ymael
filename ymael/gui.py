@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from PyQt5.QtWidgets import QApplication,QMessageBox
+from PyQt5.QtGui import QIcon
 
 from .core import Core
 from .interface import *
@@ -18,19 +19,21 @@ class GraphicInterface(QApplication):
         self._license,self._license_short,null = infos
         self._core = Core(rps_folder, cli=False)
         self.setQuitOnLastWindowClosed(False)
+        self._icon = QIcon(icon_path)
+        self.setWindowIcon(self._icon)
 
-        self._show_tray_icon(icon_path)
+        self._show_tray_icon()
         if not minimized:
             self._show_window()
 
         sys.exit(self._gui_exit(exit_func))
 
-    def _show_tray_icon(self, icon_path):
+    def _show_tray_icon(self):
         tray_menu = {
                 "Ouvrir Ymael":self._show_window,
                 "Quitter":self.exit
                 }
-        self._tray = TrayIcon(self._core, icon_path, tray_menu)
+        self._tray = TrayIcon(self._core, self._icon, tray_menu)
 
     def _show_window(self):
         menu_bar = {
