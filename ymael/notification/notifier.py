@@ -3,7 +3,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import notify2
+import notify2, dbus
 logger.info("Using notify2 as notifier lib")
 
 
