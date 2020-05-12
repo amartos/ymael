@@ -1,6 +1,6 @@
 import platform
 import keyring
-from keyring.backends import SecretService
+from keyring.backends import SecretService,Windows
 
 import logging
 logger = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ class Secrets:
     def __init__(self, domain):
         system = platform.system()
         if system == "Windows":
-            pass
+            keyring.set_keyring(Windows.WinVaultKeyring())
         elif system == "Linux":
             keyring.set_keyring(SecretService.Keyring())
 

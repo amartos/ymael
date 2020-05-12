@@ -76,6 +76,8 @@ class Core:
                     path, ext = path_ext
                     name = self._extract[domain].rps[url].get_current_date(string=True)
                     name += "_"+self._extract[domain].rps[url].get_title()
+                    # escaping filename characters for windows
+                    name = name.replace(" ", "_").replace(":", "")
                     filename = os.path.join(path,name+ext)
                 PanExporter(filename, self._extract[domain].rps[url])
                 filename = None

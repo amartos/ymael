@@ -1,9 +1,6 @@
 requests
 bs4
-notify2
-dbus-python
 pypandoc
 fake_useragent
 keyring
 PyQt5
-PyGObject

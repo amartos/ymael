@@ -1,15 +1,25 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-block_cipher = None
+import platform
 
+hidden = []
+windowed = False
+exe_icon = "assets/icons/ymael.png"
+if platform.system() == "Windows":
+    hidden = ["win32timezone"]
+    windowed = True
+    exe_icon = "assets/icons/ymael.ico"
+
+block_cipher = None
 
 a = Analysis(['main.py'],
              binaries=[],
              datas=[
                 ('assets/icons/ymael.png', '.'),
+                ('assets/icons/ymael.ico', '.'),
                 ('LICENSE', '.')
              ],
-             hiddenimports=[],
+             hiddenimports=hidden,
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -29,7 +39,9 @@ exe = EXE(pyz,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
+          icon=exe_icon,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=not(windowed)
+          )

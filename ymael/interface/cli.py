@@ -5,8 +5,9 @@ logger = logging.getLogger(__name__)
 
 class CommandLine:
 
-    def __init__(self, infos):
+    def __init__(self, infos, system, frozen):
         self._license,self._license_short,self._version = infos
+        self._minimal_cli = bool(system == "Windows" and frozen)
 
         self._define_args_parser()
         self._args = self._args_parser.parse_args()
@@ -17,9 +18,13 @@ class CommandLine:
         logger.debug("Sanitized arguments: {}".format(repr(debug_args)))
 
     def is_gui(self):
+        if self._minimal_cli:
+            self._args.gui = True
         return self._args.gui, self._args.minimized
 
     def run(self, core_instance):
+        if self._minimal_cli:
+            return
         self._core = core_instance
         self._core.is_cli()
         self._parse_args()
@@ -34,6 +39,24 @@ class CommandLine:
                 self._core.watch(self._null_notif, self._urls, self._delete_url)
 
     def _define_args_parser(self):
+        usage = ""
+        if not self._minimal_cli:
+            usage = """
+to look for new posts (needs login and password set for all watched domains):
+ymael [-n] [-l LOG_LEVEL]
+
+to add or remove a url listed in the watched database:
+ymael -u URL [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
+
+to export a URL to FILENAME:
+ymael -u URL -f FILENAME [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
+"""
+
+        usage += """
+to launch the graphic interface:
+ymael -g [-l LOG_LEVEL] [-m]
+{}""".format(self._license_short)
+
         self._args_parser = argparse.ArgumentParser(self,
                 description="""
 Watch for new posts and extract rp infos from the specified URL or stored URLs
@@ -46,34 +69,22 @@ Important reminder: the first time you export a RP or set a URL to the watcher
 from a given domain, you NEED to set the LOGIN:PASSWORD associated to the
 domain by using the -a option. See the -a option's help for details.
 """,
-        usage="""
-to look for new posts (needs login and password set for all watched domains):
-ymael [-n] [-l LOG_LEVEL]
+                usage=usage)
 
-to add or remove a url listed in the watched database:
-ymael -u URL [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
+        if not self._minimal_cli:
+            self._args_parser.add_argument(
+                    "-v", "--version",
+                    help="show the software version.",
+                    action="store_true")
 
-to export a URL to FILENAME:
-ymael -u URL -f FILENAME [-a LOGIN:PASSWORD] [-l LOG_LEVEL]
+            self._args_parser.add_argument(
+                    "-w", "--license",
+                    help="show the software license.",
+                    action="store_true")
 
-to launch the graphic interface:
-ymael -g [-l LOG_LEVEL]
-
-{}""".format(self._license_short))
-
-        self._args_parser.add_argument(
-                "-v", "--version",
-                help="show the software version.",
-                action="store_true")
-
-        self._args_parser.add_argument(
-                "-w", "--license",
-                help="show the software license.",
-                action="store_true")
-
-        self._args_parser.add_argument(
-                "-a", "--account-secrets",
-                help="""
+            self._args_parser.add_argument(
+                    "-a", "--account-secrets",
+                    help="""
 Argument is passed as LOGIN:PASSWORDS. Both are stored securely in the system's
 keyring. For more details see the python's keyring package help.
 
@@ -88,9 +99,9 @@ watched database (even one that is already watched, which will be eventually
 ignored but will trigger the change), or exporting a RP from this domain.
 """)
 
-        self._args_parser.add_argument(
-                "-u", "--urls",
-                help="""
+            self._args_parser.add_argument(
+                    "-u", "--urls",
+                    help="""
 URLs of each topic to be exported/added in watch list, separated by a space.
 They do not need to be the urls of the first page of each topic if there are
 multiple pages in them.  This option is mandatory to set login and passwords
@@ -99,22 +110,22 @@ domain of the first URL given only, thus all URLs should be from the same
 domain.
 """)
 
-        self._args_parser.add_argument(
-                "-f", "--filename",
-                help="""
+            self._args_parser.add_argument(
+                    "-f", "--filename",
+                    help="""
 Export the RP topic to the filename in one of the supported formats: pdf, odt,
 docx, or markdown (md).
 """)
 
-        self._args_parser.add_argument(
-                "-n", "--null_notif",
-                help="Notify even if there are no new posts.",
-                action="store_true")
+            self._args_parser.add_argument(
+                    "-n", "--null_notif",
+                    help="Notify even if there are no new posts.",
+                    action="store_true")
 
-        self._args_parser.add_argument(
-                "-d", "--delete_url",
-                help="Remove the URL given with -u from watched URLs.",
-                action="store_true")
+            self._args_parser.add_argument(
+                    "-d", "--delete_url",
+                    help="Remove the URL given with -u from watched URLs.",
+                    action="store_true")
 
         self._args_parser.add_argument(
                 "-l", "--log_level",

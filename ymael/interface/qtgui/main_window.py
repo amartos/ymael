@@ -8,11 +8,15 @@ from datetime import datetime
 from functools import partial
 from PyQt5.QtWidgets import *
 
-# This import is unused but still needed to fix PyQt pixbuf error
-logger.info("Importing gi.")
-import gi
-gi.require_version('GdkPixbuf', '2.0')
-from gi.repository import GdkPixbuf
+try:
+    # On linux:
+    # This import is unused but still needed to fix PyQt pixbuf error
+    logger.info("Importing gi.")
+    import gi
+    gi.require_version('GdkPixbuf', '2.0')
+    from gi.repository import GdkPixbuf
+except ImportError:
+    pass
 
 from .custom_menu import CustomMenu
 

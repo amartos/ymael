@@ -2,7 +2,6 @@
 
 import pypandoc
 import os
-import tempfile
 import shutil
 import logging
 logger = logging.getLogger(__name__)
@@ -37,14 +36,17 @@ fontfamilyoptions: sfdefault
 ---
 
 """
-        tmp_file = tempfile.mkstemp(text=True)[1]
+        tmp_file = filename
+        if ext != ".md":
+            tmp_file += ".md"
         MDMaker(tmp_file, rps, add_before)
-        try:
-            pypandoc.convert_file(tmp_file, ext.lstrip("."), format="markdown",
-                    outputfile=filename,
-                    extra_args=['--pdf-engine', 'xelatex'])
-            os.remove(tmp_file)
-        except AttributeError:
-            shutil.move(tmp_file, filename+".md")
-            logger.exception("Conversion error. File is located at {}".format(filename+".md"))
-            raise
+        if ext != ".md":
+            try:
+                pypandoc.convert_file(tmp_file, ext.lstrip("."), format="markdown",
+                        outputfile=filename,
+                        extra_args=['--pdf-engine', 'xelatex'])
+                os.remove(tmp_file)
+            except AttributeError:
+                shutil.move(tmp_file, filename+".md")
+                logger.exception("Conversion error. File is located at {}".format(filename+".md"))
+                raise

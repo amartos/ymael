@@ -15,6 +15,7 @@ class Ymael:
 
     def __init__(self):
         self.system = platform.system()
+        self.frozen = False
         self._system_local_path = self._get_system_local_path()
         self._assets_path,middle = self._get_assets_path()
 
@@ -23,6 +24,8 @@ class Ymael:
         self.VERSION="smart_goblin"
         self.LICENSE, self.LICENSE_SHORT = self._get_license()
         self.icon_path = os.path.join(self._assets_path, middle, "ymael.png")
+        self.icon_ico_path = os.path.join(self._assets_path, middle, "ymael.ico")
+        self.icons = (self.icon_path, self.icon_ico_path)
 
         self.data_path = os.path.join(self._system_local_path,"ymael")
         self.db_dir_path = os.path.join(self.data_path,"rps")
@@ -33,13 +36,14 @@ class Ymael:
 
         self._set_up_logging()
         infos = (self.LICENSE,self.LICENSE_SHORT,self.VERSION)
-        self.cli = CommandLine(infos) # start cli here to catch changes in logging level
+        # start cli here to catch changes in logging level
+        self.cli = CommandLine(infos, self.system, self.frozen)
 
         logger.info("Starting Ymael version {} on {}.".format(self.VERSION,self.system))
         logger.debug("Data path: {}".format(self.data_path))
         logger.debug("Assets path: {}".format(self._assets_path))
 
-        self.notifier = Notifier(self.system, "Ymael", self.icon_path)
+        self.notifier = Notifier(self.system, "Ymael", self.icons)
         self.core = Core(self.db_dir_path, self.notifier)
 
         try:
@@ -54,6 +58,7 @@ class Ymael:
 
     def _get_assets_path(self):
         if getattr(sys, 'frozen', False):
+            self.frozen = True
             path = sys._MEIPASS
             middle = ""
         else:
@@ -64,7 +69,7 @@ class Ymael:
 
     def _get_system_local_path(self):
         if self.system == "Windows":
-            local = os.getenv('%LOCALAPPDATA%')
+            local = os.getenv('LOCALAPPDATA')
         elif self.system == "Linux":
             local = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))
         else:
@@ -92,7 +97,9 @@ https://gitea.com/amartos/ymael
     def _set_up_logging(self):
         self.log_file = os.path.join(self.data_path,"logs", self.now)
         str_format = "[%(asctime)s] [{}] %(name)s (%(levelname)s): %(message)s".format(self.VERSION)
-        logging.basicConfig(filename=self.log_file, level=logging.WARNING, format=str_format)
+        # handler is defined separately because utf-8 precision is needed in windows
+        handler = logging.FileHandler(self.log_file, "a", "utf-8")
+        logging.basicConfig(handlers=[handler], level=logging.WARNING, format=str_format)
 
     def clean_logs(self):
         # remove empty log file

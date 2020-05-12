@@ -123,7 +123,8 @@ __%s__
 
     def _write_to_file(self):
         final = self._hard_wrap(self._add_before+self._header+self._body)
-        with open(self._filename, "w") as f:
+        # utf-8 precision is needed for windows
+        with open(self._filename, "w", encoding="utf-8") as f:
             f.write(final)
 
     def _hard_wrap(self, text):
