@@ -51,7 +51,7 @@ class Tabs(QWidget):
         self._url_field = QLineEdit(self._url_input)
         self._url_field.setFixedWidth(600)
         self._url_input.layout.addWidget(self._url_field)
-        self._create_button(self._url_input, "Surveiller", self._watch_url)
+        self._create_button(self._url_input, "Surveiller", self._watch_url, enable=False)
         self._export_watch_tab.layout.addWidget(self._url_input)
 
     def _create_export_section(self):
@@ -66,7 +66,7 @@ class Tabs(QWidget):
         for i in self._core.supported_extensions():
             self._create_button(self._export_field, i, partial(self._change_extension, i), radio=True)
         self._change_extension(".pdf") # pdf will always be supported
-        self._create_button(self._export_field, "Exporter", self._export_selection)
+        self._create_button(self._export_field, "Exporter", self._export_selection, enable=False)
         self._export_watch_tab.layout.addWidget(self._export_field)
 
     def _create_table_modifiers(self):
@@ -94,7 +94,7 @@ class Tabs(QWidget):
 # export & watch tab general functions
 ###############################################################################
 
-    def _create_button(self, parent, text, linked_func, radio=False):
+    def _create_button(self, parent, text, linked_func, radio=False, enable=True):
         if not parent in self._buttons.keys():
             self._buttons[parent] = {}
         if radio:
@@ -104,6 +104,7 @@ class Tabs(QWidget):
         width = self._buttons[parent][text].fontMetrics().boundingRect(text).width() + 50
         self._buttons[parent][text].setMaximumWidth(width)
         self._buttons[parent][text].clicked.connect(linked_func)
+        self._buttons[parent][text].setEnabled(enable)
         parent.layout.addWidget(self._buttons[parent][text])
 
     def _watch_url(self):
@@ -179,6 +180,11 @@ class Tabs(QWidget):
                 else:
                     self._watcher_table.setItem(line, i, self._table_lines[line][i])
 
+    def _activate_buttons(self):
+        logger.debug("Watch & export buttons activated.")
+        self._buttons[self._url_input]["Surveiller"].setEnabled(True)
+        self._buttons[self._export_field]["Exporter"].setEnabled(True)
+
 ###############################################################################
 # parameters tab
 ###############################################################################
@@ -226,13 +232,55 @@ class Tabs(QWidget):
         login, password = self._core._secrets[domain].get_secrets()
         self._login_field.setText(login)
         self._password_field.setText(password)
+        if all((login, password)):
+            self._activate_buttons()
+        else:
+            logger.debug("No secrets available. Watch & export disabled.")
+            self._popup_set_secrets(domain)
 
     def _save_login_password(self):
         login = self._login_field.text()
         password = self._password_field.text()
         domain = self._core.get_supported_domains()[0] # only Edenya is supported for now
-        self._core.set_domain_secrets((login, password), domain)
+        if all((login, password)):
+            self._core.set_domain_secrets((login, password), domain)
+            self._activate_buttons()
 
+    def _popup_set_secrets(self, domain):
+        self._popup = QDialog()
+        form = QFormLayout()
+        self._popup.setLayout(form)
+        self._popup.setWindowTitle("Login & Mot de passe")
+
+        text_label = QLabel()
+        text_label.setText("Veuillez entrer vos login & mot de passe pour le site {}.".format(domain))
+        form.addRow(text_label)
+
+        self._login = QLineEdit()
+        login_label = QLabel()
+        login_label.setText("Login:")
+        form.addRow(login_label,self._login)
+
+        self._password = QLineEdit()
+        password_label = QLabel()
+        password_label.setText("Password:")
+        form.addRow(password_label, self._password)
+
+        ok_button = QPushButton("ok")
+        ok_button.clicked.connect(self._popup_exit)
+        form.addRow(ok_button)
+        self._popup.exec_()
+
+    def _popup_exit(self):
+        login = self._login.text()
+        password = self._password.text()
+        domain = self._core.get_supported_domains()[0] # only Edenya is supported for now
+        if all((login,password)):
+            self._core.set_domain_secrets((login, password), domain)
+            self._activate_buttons()
+        else:
+            logger.info("Login or password not provided in secrets popup.")
+        self._popup.done(0)
 
 class MainWindow(QMainWindow):
 
