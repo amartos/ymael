@@ -27,6 +27,7 @@ class Tabs(QWidget):
         self._tabs = QTabWidget()
         self._define_export_and_watch_tab()
         self._define_parameters_tab()
+        self._folder_path = ""
 
         self._layout = QVBoxLayout(self)
         self._layout.addWidget(self._tabs)
