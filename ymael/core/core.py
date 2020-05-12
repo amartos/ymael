@@ -96,36 +96,40 @@ class Core:
         else:
             self._watch_db_urls(null_notif)
 
-    def _set_in_watcher(self, urls):
-        self._extraction(urls)
+    def _get_urls_infos(self, urls):
         infos = []
         for url in urls:
             domain = self._get_domain(url)
-            retrieved_date = self._extract[domain].rps[url].get_current_date()
-            title = self._extract[domain].rps[url].get_title()
-            infos.append((retrieved_date, title, url))
+            if url in self._extract[domain].rps.keys():
+                retrieved_date = self._extract[domain].rps[url].get_current_date()
+                title = self._extract[domain].rps[url].get_title()
+                infos.append((retrieved_date, title, url))
         if not infos:
             self._fatal_error("URLs infos not retrieved.")
-        self._watcher.watch(infos)
+        return infos
+
+    def _set_in_watcher(self, urls):
+        self._extraction(urls)
+        infos = self._get_urls_infos(urls)
+        if infos:
+            self._watcher.watch(infos)
 
     def _watch_db_urls(self, null_notif):
         new_rps = []
         if self._watcher.are_urls_to_check():
             urls = self._watcher.get_urls_to_check()
             self._extraction(urls)
-            infos = []
-            for url in urls:
+            infos = self._get_urls_infos(urls)
+            if infos:
+                logger.debug("Updating timestamps.")
+                self._watcher.watch(infos, replace=True)
+
+            for page in infos:
+                null, title, url = page
                 domain = self._get_domain(url)
-                retrieved_date = self._extract[domain].rps[url].get_current_date()
-                title = self._extract[domain].rps[url].get_title()
-                infos.append((retrieved_date, title, url))
-                # update new retrieved date
                 if self._extract[domain].rps[url].are_new_posts():
                     u, t, count, authors = self._extract[domain].rps[url].get_news_infos()
                     new_rps.append((url, title, count, authors))
-
-            logger.debug("Updating timestamps.")
-            self._watcher.watch(infos, replace=True)
         else:
             logger.info("There are no URLs to check.")
 
@@ -166,7 +170,7 @@ class Core:
             else:
                 self._extract[domain] = self._parsers[domain](
                         urls,
-                        self.get_domain_secrets(domain),
+                        secrets,
                         self._rps_folder
                         )
 
