@@ -23,7 +23,7 @@ class EdenyaParser:
             self._url = url
             self._parse_html(url)
             # TODO: this is not enough stringeant
-            if not "Posté le :" in self._parsed.body.text:
+            if not "Situation RP" in self._parsed.body.text:
                 logger.error("Returned page is not a RP: {}".format(url))
                 continue
 
