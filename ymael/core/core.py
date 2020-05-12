@@ -23,6 +23,8 @@ class Core:
                 "edenya.net":EdenyaParser,
             }
 
+        self._watcher = Watcher(self._rps_folder)
+
         self._secrets = {}
         for domain in self._parsers.keys():
             self._secrets[domain] = Secrets(domain)
@@ -84,15 +86,7 @@ class Core:
     def supported_extensions(self):
         return PanExporter.supported_extensions()
 
-    def init_watcher(self):
-        self._watcher = Watcher(self._rps_folder)
-
     def watch(self, null_notif=False, urls=[], delete=False):
-        try:
-            self._watcher.watch
-        except (NameError, AttributeError):
-            self.init_watcher()
-
         logger.info("Triggering watch. null_notif: {} ; delete: {} ; urls: {}".format(repr(null_notif), repr(delete), repr(urls)))
         if urls and not delete:
             self._set_in_watcher(urls)

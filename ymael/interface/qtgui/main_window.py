@@ -22,7 +22,6 @@ class Tabs(QWidget):
     def __init__(self, core_instance, parent=None):
         super().__init__(parent)
         self._core = core_instance
-        self._core.init_watcher()
 
         self._buttons = {}
         self._tabs = QTabWidget()
