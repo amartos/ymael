@@ -9,6 +9,7 @@ from functools import partial
 from PyQt5.QtWidgets import *
 
 # This import is unused but still needed to fix PyQt pixbuf error
+logger.info("Importing gi.")
 import gi
 gi.require_version('GdkPixbuf', '2.0')
 from gi.repository import GdkPixbuf
@@ -122,6 +123,7 @@ class Tabs(QWidget):
     def _get_folder_path(self):
         self._folder_path = QFileDialog.getExistingDirectory(self, "Choisir un répertoire de destination")
         if self._folder_path:
+            logger.debug("Setting export folder to: {}".format(self._folder_path))
             self._folder_path_field.setText(self._folder_path)
 
     def _change_extension(self, extension):
@@ -129,6 +131,7 @@ class Tabs(QWidget):
             if not i == extension and v.isChecked():
                 self._buttons[self._export_field][i].setChecked(False)
         self._buttons[self._export_field][extension].setChecked(True)
+        logger.debug("Setting export extension to: {}".format(extension))
         self._extension = extension
 
     def _export_selection(self):
@@ -248,4 +251,5 @@ class MainWindow(QMainWindow):
 
         self._table_widget = Tabs(core_instance, self)
         self.setCentralWidget(self._table_widget)
+        logger.info("Showing main window.")
         self.show()

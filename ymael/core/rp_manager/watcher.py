@@ -28,12 +28,14 @@ class Watcher:
             retrieved_date, title, url = value
             if not url in self.watcher.keys():
                 self.watcher[url] = (retrieved_date, title)
+                logger.debug("URL added to watcher: {}".format(url))
 
     def unwatch(self, urls):
         conditions = [("url", url) for url in urls]
         self._db.delete_rows("watch", conditions, use_or=True)
         for url in urls:
             del self.watcher[url]
+            logger.debug("URL removed from watcher: {}".format(url))
 
     def are_urls_to_check(self):
         self._check_dates()

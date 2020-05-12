@@ -19,6 +19,7 @@ class Timer(QObject):
 
     def run(self):
         while self._running:
+            logger.info("Time is up.")
             self.time_is_up.emit()
             self._wait()
 

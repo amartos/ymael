@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 class Database:
 
     def __init__(self, db_path, db_script=""):
+        self._db_path = db_path
         self._date_format = "%Y-%m-%d %H:%M:%S"
         self._db_conn = sqlite3.connect(db_path)
         self._db_curs = self._db_conn.cursor()
@@ -38,6 +39,7 @@ class Database:
 
         args = self._unpack_list(values)
 
+        logger.debug("{} ; {}".format(query, repr(args)))
         self._db_curs.execute(query, tuple(args))
 
     def delete_rows(self, table_name, conditions, use_or=False):
@@ -82,6 +84,7 @@ class Database:
                 query += "foreign key ("+keys[0]+") references "+keys[1]+"("+keys[2]+"), "
 
         query += "primary key ("+",".join(primary_keys)+"));"
+        logger.debug("{}".format(query))
         self._db_curs.execute(query)
 
     def get_date_format(self):
@@ -93,6 +96,7 @@ class Database:
 
     def close(self):
         try:
+            logger.debug("Commit & close {}".format(self._db_path))
             self._db_conn.commit()
             self._db_conn.close()
         except sqlite3.ProgrammingError:
@@ -100,6 +104,7 @@ class Database:
             pass
 
     def _create_new_db(self, db_script):
+        logger.debug("{}".format(db_script))
         self._db_curs.executescript(db_script)
 
     def _search(self, command_string, table_name, conditions=[], use_or=False, column_order="", reverse=False):
@@ -119,6 +124,7 @@ class Database:
 
         if not conditions:
             query = "select * from "+table_name+ordering+";"
+            logger.debug("{}".format(query))
             self._db_curs.execute(query)
             return
 
@@ -132,6 +138,7 @@ class Database:
         query = query[:-len(operator)]+ordering+";" # remove last operator and close
 
         args = tuple([c[1] for c in conditions])
+        logger.debug("{} ; {}".format(query, args))
         self._db_curs.execute(query, args)
 
     def _unpack_list(self, packed):

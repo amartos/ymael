@@ -44,9 +44,11 @@ class RPmanager:
         self._save_posts()
         self._get_new_posts_infos()
         self._db.close()
+        logger.debug("RP saved.")
 
     def load(self, title, url=""):
         if self._db.is_row("rps", [("title", title)]):
+            logger.debug("Loading RP from DB.")
             result = self._db.get_row("rps", [("title", title)])
             creation_date, title, location, dms = result
 
@@ -61,6 +63,7 @@ class RPmanager:
                 self.create_post(irl_date, ig_date, weather, post_title, author_infos, language, text, date=retrieved_date)
                 results = self._db.get_results()
         else:
+            logger.debug("No RP to load from DB.")
             return False
         return True
 

@@ -50,4 +50,5 @@ class TrayIcon(QSystemTrayIcon):
         self._timer.change_times(minutes, delay)
 
     def _work(self):
+        logger.debug("Time-triggered watch.")
         self._core.watch(True) # null_notif while debugging

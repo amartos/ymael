@@ -46,4 +46,5 @@ fontfamilyoptions: sfdefault
             os.remove(tmp_file)
         except AttributeError:
             shutil.move(tmp_file, filename+".md")
+            logger.exception("Conversion error. File is located at {}".format(filename+".md"))
             raise

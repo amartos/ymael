@@ -5,17 +5,24 @@ logger = logging.getLogger(__name__)
 
 class CommandLine:
 
-    def __init__(self, infos, core_instance):
+    def __init__(self, infos):
         self._license,self._license_short,self._version = infos
-        self._core = core_instance
 
         self._define_args_parser()
-        self._parse_args()
+        self._args = self._args_parser.parse_args()
+
+        self._define_logging_level()
+        debug_args = self._args
+        debug_args.account_secrets = bool(self._args.account_secrets)
+        logger.debug("Sanitized arguments: {}".format(repr(debug_args)))
 
     def is_gui(self):
-        return self._gui, self._minimized
+        return self._args.gui, self._args.minimized
 
-    def run(self):
+    def run(self, core_instance):
+        self._core = core_instance
+        self._core.is_cli()
+        self._parse_args()
         if self._args.version:
             print("Ymael version {}".format(self._version))
         elif self._args.license:
@@ -129,24 +136,19 @@ all other options are ignored.
                 action="store_true")
 
     def _parse_args(self):
-        self._args = self._args_parser.parse_args()
-        self._define_logging_level()
-        self._gui = self._args.gui
-        self._minimized = self._args.minimized
-        if not self._gui:
-            self._define_urls()
-            self._define_secrets()
-            self._export_or_notify()
+        self._define_urls()
+        self._define_secrets()
+        self._export_or_notify()
 
     def _define_logging_level(self):
         if self._args.log_level:
-            # ValueError exception is not handled here as it will be raised and
-            # will stop the program - which is what is wanted. It will be
-            # logged by logger, see main file.
-            level = int(self._args.log_level)
+            try:
+                level = int(self._args.log_level)
+            except ValueError:
+                self._fatal_error("Wrong value type for logging level - should be int between 1 and 3: {}".format(level))
 
             if level > 3 or level < 1:
-                raise ValueError("Debugging level can only be between 1 and 3.")
+                self._fatal_error("Debugging level can only be between 1 and 3. Given: {}".format(level))
 
             if level == 1:
                 logging.getLogger(__name__).parent.setLevel(logging.WARNING)
@@ -168,7 +170,8 @@ all other options are ignored.
             if all(secrets) and len(secrets) == 2 and self._urls:
                 self._core.set_domain_secrets(secrets, url=self._urls[0])
             else:
-                raise ValueError("You need to provide a login, password and url to set secrets.")
+                self._fatal_error("Wrong usage of -a and -u: no correct combination provided. "\
+                        "You need to provide both login:password AND url to set secrets.")
 
     def _export_or_notify(self):
         # if not export, notify
@@ -177,8 +180,13 @@ all other options are ignored.
 
         self._delete_url = self._args.delete_url
         if self._delete_url and not self._urls:
-            raise ValueError("No url to delete specified.")
+            self._fatal_error("Deleted option used without a correct URL. Given: '{}'".format(url))
 
         self._filename = self._args.filename
         if self._urls and self._filename:
             self._do_export = True
+
+    def _fatal_error(self, message):
+        logger.error(message)
+        print(message)
+        sys.exit(1)

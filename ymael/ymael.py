@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
+logger = logging.getLogger()
+
 import os, sys, platform
 from datetime import datetime
 
@@ -29,19 +31,24 @@ class Ymael:
             if not os.path.exists(folder):
                 os.mkdir(folder)
 
-        self.logger = self._set_up_logging()
+        self._set_up_logging()
+        infos = (self.LICENSE,self.LICENSE_SHORT,self.VERSION)
+        self.cli = CommandLine(infos) # start cli here to catch changes in logging level
+
+        logger.info("Starting Ymael version {} on {}.".format(self.VERSION,self.system))
+        logger.debug("Data path: {}".format(self.data_path))
+        logger.debug("Assets path: {}".format(self._assets_path))
+
         self.notifier = Notifier(self.system, "Ymael", self.icon_path)
         self.core = Core(self.db_dir_path, self.notifier)
 
-        infos = (self.LICENSE,self.LICENSE_SHORT,self.VERSION)
         try:
-            self.cli = CommandLine(infos, self.core)
             gui, minimized = self.cli.is_gui()
             if gui:
                 del self.cli
                 self.gui = GraphicInterface(infos, self.core, self.icon_path, self.clean_logs, minimized)
             else:
-                self.cli.run()
+                self.cli.run(self.core)
         except Exception:
             self._fatal_error()
 
@@ -86,8 +93,6 @@ https://gitea.com/amartos/ymael
         self.log_file = os.path.join(self.data_path,"logs", self.now)
         str_format = "[%(asctime)s] [{}] %(name)s (%(levelname)s): %(message)s".format(self.VERSION)
         logging.basicConfig(filename=self.log_file, level=logging.WARNING, format=str_format)
-        logger = logging.getLogger(__name__)
-        return logger
 
     def clean_logs(self):
         # remove empty log file
@@ -96,12 +101,12 @@ https://gitea.com/amartos/ymael
             os.remove(self.log_file)
 
     def _fatal_error(self):
-            self.logger.exception("A fatal error occurred.")
-            title = "Une erreur fatale s'est produite."
-            message = "Plus de détails dans le log: {}".format(self.log_file)
-            try:
-                self.cli.run
-                print(title+"\n"+message)
-            except (NameError,AttributeError):
-                self.notifier.send(title,message)
-            sys.exit(1)
+        logger.exception("A fatal error occurred.")
+        title = "Une erreur fatale s'est produite."
+        message = "Plus de détails dans le log: {}".format(self.log_file)
+        try:
+            self.cli.run
+            print(title+"\n"+message)
+        except (NameError,AttributeError):
+            self.notifier.send(title,message)
+        sys.exit(1)

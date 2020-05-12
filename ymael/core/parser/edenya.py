@@ -24,8 +24,10 @@ class EdenyaParser:
             self._parse_html(url)
             # TODO: this is not enough stringeant
             if not "Posté le :" in self._parsed.body.text:
-                raise ValueError("Returned page is not a RP.")
+                logger.error("Returned page is not a RP: {}".format(url))
+                continue
 
+            logger.debug("Building RP of {}".format(url))
             self._rp = RPmanager(rps_dir, "%Y-%m-%d %H:%M:%S")
 
             self._parse_rp()
@@ -37,7 +39,18 @@ class EdenyaParser:
 
             self._rp.save()
             self.rps[url] = self._rp
+            # this is for debugging purposes
+            tmp = self._rp
+            for d in self._rp["posts"].keys():
+                for i in d.keys():
+                    # this will drasticaly reduce the logs length, as the
+                    # posts' texts can be *very* long, with *numerous* posts
+                    # per url
+                    tmp["posts"][d][i]["text"] = len(self._rp["posts"][d][i]["text"])
+            tmp["url"] = url
+            logger.debug("RP parsing finished: {}".format(repr(tmp)))
 
+        logger.info("Closing session.")
         self._session.close()
 
     def _define_urls(self):
@@ -70,8 +83,9 @@ class EdenyaParser:
         self._session = requests.Session()
         atexit.register(self._session.close)
         self._response = self._session.post(self._login_url, data=load, verify=True, headers={**header,**supp_header})
-        if not self._response.ok:
-            raise ValueError("Could not connect to Edenya v4.")
+        if not self._response.ok or not "cache_timezone" in self._session.cookies.keys():
+            logger.error("Could not connect to Edenya.")
+            return
         self._session.get("https://v4.edenya.net/accueil/", headers=header)
         self._session.get("https://v4.edenya.net/jouer/", headers=header)
         self._session.get("https://v4.edenya.net/_game/vahal/accueil/", headers=header)

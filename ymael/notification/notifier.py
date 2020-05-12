@@ -24,6 +24,7 @@ class Notifier:
         import notify2
         notify2.init("Ymael")
         def send(self, title, message):
+            logger.debug("Notifying: {} - {}".format(title,message))
             notifier = notify2.Notification(
                     title+"\n"+message,
                     self.icon
