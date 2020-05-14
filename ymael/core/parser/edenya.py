@@ -39,16 +39,7 @@ class EdenyaParser:
 
             self._rp.save()
             self.rps[url] = self._rp
-            # this is for debugging purposes
-            tmp = self._rp
-            for d in self._rp["posts"].keys():
-                for i in d.keys():
-                    # this will drasticaly reduce the logs length, as the
-                    # posts' texts can be *very* long, with *numerous* posts
-                    # per url
-                    tmp["posts"][d][i]["text"] = len(self._rp["posts"][d][i]["text"])
-            tmp["url"] = url
-            logger.debug("RP parsing finished: {}".format(repr(tmp)))
+            logger.debug("RP parsing finished: {}".format(url))
 
         logger.info("Closing session.")
         self._session.close()
