@@ -14,7 +14,8 @@ class CommandLine:
 
         self._define_logging_level()
         debug_args = self._args
-        debug_args.account_secrets = bool(self._args.account_secrets)
+        if not self._minimal_cli:
+            debug_args.account_secrets = bool(self._args.account_secrets)
         logger.debug("Sanitized arguments: {}".format(repr(debug_args)))
 
     def is_gui(self):
