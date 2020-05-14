@@ -40,6 +40,7 @@ mainfont: FreeSans
         if ext != ".md":
             tmp_file += ".md"
         MDMaker(tmp_file, rps, add_before)
+        logger.debug("File is located at {}".format(tmp_file))
         if ext != ".md":
             try:
                 pypandoc.convert_file(tmp_file, ext.lstrip("."), format="markdown",
@@ -52,6 +53,3 @@ mainfont: FreeSans
                 logger.warning("No latex distribution available.")
             except AttributeError:
                 logger.exception("Conversion error.")
-            else:
-                shutil.move(tmp_file, filename+".md")
-                logger.warning("File is located at {}".format(filename+".md"))
