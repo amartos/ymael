@@ -32,8 +32,7 @@ margin-right: 2.5cm
 margin-top: 2.5cm
 margin-bottom: 2.5cm
 lang: fr
-fontfamily: carlito
-fontfamilyoptions: sfdefault
+mainfont: FreeSans
 ---
 
 """
