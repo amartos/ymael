@@ -39,7 +39,7 @@ Double-cliquez sur l'exécutable. C'est aussi simple !
 
 L'interface en ligne de commande n'est pas disponible pour la version
 exécutable de windows, seule la version graphique est accessible (les options
-`--help`, `--logging-level` et `--minimized` restent disponibles). Il vous est
+`--logging-level` et `--minimized` restent disponibles). Il vous est
 toujours possible de télécharger les sources, cependant, et d'utiliser le
 logiciel complet via cette méthode (cf en-dessous).
 
