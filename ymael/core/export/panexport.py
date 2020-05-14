@@ -17,6 +17,7 @@ class PanExporter:
         return [".pdf",".odt",".docx",".md"]
 
     def __init__(self, filename, rps):
+        logger.info("Pandoc version: {}".format(pypandoc.get_pandoc_version()))
         filename, ext = os.path.splitext(filename)
         if not ext in self.supported_extensions():
             logger.warning("Output format %s not supported. Switching to .md", ext)
@@ -46,7 +47,12 @@ fontfamilyoptions: sfdefault
                         outputfile=filename,
                         extra_args=['--pdf-engine', 'xelatex'])
                 os.remove(tmp_file)
+            except OSError:
+                logger.warning("Pandoc is not installed.")
+            except RuntimeError:
+                logger.warning("No latex distribution available.")
             except AttributeError:
+                logger.exception("Conversion error.")
+            else:
                 shutil.move(tmp_file, filename+".md")
-                logger.exception("Conversion error. File is located at {}".format(filename+".md"))
-                raise
+                logger.warning("File is located at {}".format(filename+".md"))
