@@ -72,14 +72,20 @@ class RPmanager:
     def is_posts_empty(self):
         return not bool(self.rp["posts"])
 
-    def is_post_already_in(self, date, title):
+    def is_post_already_in(self, date, title, get_index=False):
+        index = 0
+        answer = False
         if date in self.rp["posts"].keys():
             for index in self.rp["posts"][date].keys():
                 if self.get_post_title(date, index) == title:
-                    return True
+                    answer = True
+                    index = index
         else:
-            return None
-        return False
+            answer = None
+        if get_index:
+            return answer,index
+        else:
+            return answer
 
     def are_new_posts(self):
         return bool(self._new_posts)
@@ -134,13 +140,16 @@ class RPmanager:
                 "retrieved":date
                 }
 
-        already_in = self.is_post_already_in(irl_date, title)
+        already_in, index = self.is_post_already_in(irl_date, title, get_index=True)
         if not already_in:
             if already_in == None:
                 self.rp["posts"][irl_date] = {0:post}
             else:
                 n = len(self.rp["posts"][irl_date].keys())
                 self.rp["posts"][irl_date][n] = post
+        else:
+            if self._has_post_changed(irl_date, index, post["text"]):
+                self.rp["posts"][irl_date][index] = post
 
 ## Get infos
 
@@ -236,6 +245,12 @@ class RPmanager:
             results = self._db.get_results()
 
         self._last_authors = sorted(list(set(new_authors)), key=str.casefold)
+
+    def _has_post_changed(self, date, index, text):
+        previous_text = self.get_post_text(date, index)
+        if text != previous_text:
+            return True
+        return False
 
 ## Set infos
 
@@ -379,4 +394,4 @@ class RPmanager:
                         post,
                         retrieved_date))
 
-        self._db.insert_rows("posts", columns, values)
+        self._db.insert_rows("posts", columns, values, replace=True)
