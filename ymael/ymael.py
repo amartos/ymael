@@ -30,7 +30,7 @@ class Ymael:
         self.data_path = os.path.join(self._system_local_path,"ymael")
         self.db_dir_path = os.path.join(self.data_path,"rps")
         self.logs_dir_path = os.path.join(self.data_path,"logs")
-        for folder in [self.db_dir_path, self.logs_dir_path]:
+        for folder in [self.data_path, self.db_dir_path, self.logs_dir_path]:
             if not os.path.exists(folder):
                 os.mkdir(folder)
 
