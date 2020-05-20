@@ -15,18 +15,12 @@ crée par Xen.
 Aucun prérequis n'est nécessaire pour la surveillance de nouveaux posts.
 
 Pour exporter les RP en formats PDF, ODT ou DOCX, il vous faudra installer
-[Pandoc](https://pandoc.org/installing.html#windows) et [Miktex](https://miktex.org/download).
-Les réglages par défaut pour chacun sont suffisants, excepté dans la section
-`Paramètres` de Miktex où il faut régler `Installation des paquets à la volée`
-sur `Oui`. L'installation de Miktex nécessite quelques réglages
-supplémentaires: effectuez la mise à jour des paquets avant toute utilisation.
-
-Une fois ces installations et réglages effectués, redémarrez votre PC.
-
-Le premier export d'un RP sera **très** long (jusqu'à plusieurs minutes), et
-**c'est normal**. Miktex installera tout d'abord tous les paquets qui lui sont
-nécessaires (et ils sont nombreux).  Les exports suivants seront bien plus
-rapides.
+[Pandoc](https://pandoc.org/installing.html#windows) (prendre le *package installer* sur la page github en lien, selon la
+version de votre Windows - `i386.msi` pour les 32 bits, et `x86_64.msi` pour
+les 64 bits ; pour le savoir dans Windows 10 allez dans menu > paramètres >
+système > informations système > type du système) et [Texlive](https://www.tug.org/texlive/acquire-netinstall.html) (prendre le
+`install-tl-windows.exe`). Les réglages par défaut pour chacun sont suffisants.
+Une fois ces logiciels installés, redémarrez votre PC.
 
 ### Installation
 
