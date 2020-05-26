@@ -25,6 +25,20 @@ class CustomMenu(QMenu):
             else:
                 self._create_menu_item(string, action, parent)
 
+    def change_menu_label(self, former, new, menu_dict={}):
+        if not menu_dict:
+            menu_dict = self._menus
+        for label, values in menu_dict.items():
+            if isinstance(values, dict):
+                self.change_menu_label(former, new, values)
+            elif label == former:
+                menu_dict[new] = values
+                del menu_dict[former]
+                try:
+                    menu_dict[new].setText(new)
+                except AttributeError:
+                    menu_dict[new].setTitle(new)
+
     def _create_sub_menu(self, string, parent):
         new_menu = QMenu("&"+string)
         parent.addMenu(new_menu)
