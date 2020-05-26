@@ -1,6 +1,5 @@
 requests
 bs4
-pypandoc
 fake_useragent
 keyring
 PyQt5
