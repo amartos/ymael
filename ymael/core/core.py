@@ -24,6 +24,7 @@ class Core:
             }
 
         self._watcher = Watcher(self._rps_folder)
+        self._panexporter = PanExporter()
 
         self._secrets = {}
         for domain in self._parsers.keys():
@@ -79,14 +80,17 @@ class Core:
                     # escaping filename characters for windows
                     name = name.replace(" ", "_").replace(":", "")
                     filename = os.path.join(path,name+ext)
-                PanExporter(filename, self._extract[domain].rps[url])
+                self._panexporter.convert(filename, self._extract[domain].rps[url])
                 filename = None
             else:
                 logger.warning("Posts of URL are empty: {}".format(url))
         self._notify_user("Export", "L'export est terminé.")
 
     def supported_extensions(self):
-        return PanExporter.supported_extensions()
+        return self._panexporter.supported_extensions()
+
+    def export_ready(self):
+        return self._panexporter.is_ready()
 
     def watch(self, null_notif=False, urls=[], delete=False):
         logger.info("Triggering watch. null_notif: {} ; delete: {} ; urls: {}".format(repr(null_notif), repr(delete), repr(urls)))

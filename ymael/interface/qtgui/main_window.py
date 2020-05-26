@@ -69,8 +69,7 @@ class Tabs(QWidget):
         self._create_button(self._export_field, "Ouvrir", self._get_folder_path)
         self._export_field.layout.addItem(QSpacerItem(20, 20))
         for i in self._core.supported_extensions():
-            self._create_button(self._export_field, i, partial(self._change_extension, i), radio=True)
-        self._change_extension(".pdf") # pdf will always be supported
+            self._create_button(self._export_field, i, partial(self._change_extension, i), radio=True, enable=False)
         self._create_button(self._export_field, "Exporter", self._export_selection, enable=False)
         self._export_watch_tab.layout.addWidget(self._export_field)
 
@@ -185,10 +184,26 @@ class Tabs(QWidget):
                 else:
                     self._watcher_table.setItem(line, i, self._table_lines[line][i])
 
-    def _activate_buttons(self):
-        logger.debug("Watch & export buttons activated.")
-        self._buttons[self._url_input]["Surveiller"].setEnabled(True)
-        self._buttons[self._export_field]["Exporter"].setEnabled(True)
+    def _activate_buttons(self, button_list):
+        for i in button_list:
+            widget, name = i
+            logger.debug("Activating '{}' button.".format(name))
+            self._buttons[widget][name].setEnabled(True)
+
+    def _activate_export_button(self):
+        export_buttons = [(self._export_field,"Exporter")]
+        for i in self._core.supported_extensions():
+            if (i != ".md" and self._core.export_ready()) or i == ".md":
+                export_buttons.append((self._export_field,i))
+        self._activate_buttons(export_buttons)
+        # pdf and md will always be supported
+        if self._core.export_ready():
+            self._change_extension(".pdf")
+        else:
+            self._change_extension(".md")
+
+    def _activate_watch_button(self):
+        self._activate_buttons([(self._url_input,"Surveiller")])
 
 ###############################################################################
 # parameters tab
@@ -238,7 +253,8 @@ class Tabs(QWidget):
         self._login_field.setText(login)
         self._password_field.setText(password)
         if all((login, password)):
-            self._activate_buttons()
+            self._activate_watch_button()
+            self._activate_export_button()
         else:
             logger.debug("No secrets available. Watch & export disabled.")
             self._popup_set_secrets(domain)
@@ -249,7 +265,8 @@ class Tabs(QWidget):
         domain = self._core.get_supported_domains()[0] # only Edenya is supported for now
         if all((login, password)):
             self._core.set_domain_secrets((login, password), domain)
-            self._activate_buttons()
+            self._activate_watch_button()
+            self._activate_export_button()
 
     def _popup_set_secrets(self, domain):
         self._popup = QDialog()
@@ -282,7 +299,8 @@ class Tabs(QWidget):
         domain = self._core.get_supported_domains()[0] # only Edenya is supported for now
         if all((login,password)):
             self._core.set_domain_secrets((login, password), domain)
-            self._activate_buttons()
+            self._activate_watch_button()
+            self._activate_export_button()
         else:
             logger.info("Login or password not provided in secrets popup.")
         self._popup.done(0)
