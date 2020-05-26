@@ -4,3 +4,4 @@ fake_useragent
 keyring
 PyQt5
 lxml
+browser_cookie3

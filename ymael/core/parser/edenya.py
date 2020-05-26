@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+import browser_cookie3
 import requests
 import bs4
 import re
@@ -73,13 +75,37 @@ class EdenyaParser:
 
         self._session = requests.Session()
         atexit.register(self._session.close)
-        self._response = self._session.post(self._login_url, data=load, verify=True, headers={**header,**supp_header})
-        if not self._response.ok or not "cache_timezone" in self._session.cookies.keys():
-            logger.error("Could not connect to Edenya.")
-            return
-        self._session.get("https://v4.edenya.net/accueil/", headers=header)
-        self._session.get("https://v4.edenya.net/jouer/", headers=header)
-        self._session.get("https://v4.edenya.net/_game/vahal/accueil/", headers=header)
+        edenya_cookies = self._get_cookies()
+        edenya_cookies_names = [c.name for c in edenya_cookies]
+        check_cookie_name = "cache_timezone"
+        if not check_cookie_name in edenya_cookies_names:
+            logger.info("Setting new session.")
+            self._response = self._session.post(self._login_url, data=load, verify=True, headers={**header,**supp_header})
+            if not self._response.ok or not check_cookie_name in self._session.cookies.keys():
+                logger.error("Could not connect to Edenya.")
+                return
+            self._session.get("https://v4.edenya.net/accueil/", headers=header)
+            self._session.get("https://v4.edenya.net/jouer/", headers=header)
+            self._session.get("https://v4.edenya.net/_game/vahal/accueil/", headers=header)
+        else:
+            logger.info("Using existing session.")
+            for c in edenya_cookies:
+                self._session.cookies.set_cookie(c)
+
+    def _get_cookies(self):
+        flatpak_firefox = os.path.expanduser("~/.var/app/org.mozilla.firefox/.mozilla/firefox")
+        if os.path.exists(flatpak_firefox):
+            logger.info("Getting cookies from firefox flatpak.")
+            profile = [i for i in os.listdir(flatpak_firefox) if "default-beta" in i][0]
+            cookie_path = flatpak_firefox+"/"+profile+"/cookies.sqlite"
+            cookies = browser_cookie3.firefox(cookie_file=cookie_path)
+        else:
+            logger.info("Loading cookies from all browsers.")
+            cookies = browser_cookie3.load()
+        cookies.clear_expired_cookies()
+        domain_cookies = [c for c in cookies if self._domain in c.domain]
+        logger.debug("Cookies: {}".format(repr([c.name for c in domain_cookies])))
+        return domain_cookies
 
     def _parse_html(self, url):
         raw_html = self._session.get(url).text
