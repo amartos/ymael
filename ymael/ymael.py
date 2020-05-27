@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger()
 
 import os, sys, platform
+import atexit
 from datetime import datetime
 
 from .core import Core
@@ -45,6 +46,8 @@ class Ymael:
 
         self.notifier = Notifier(self.system, "Ymael", self.icons)
         self.core = Core(self.db_dir_path, self.notifier)
+
+        atexit.register(self.quit)
 
         try:
             gui, minimized = self.cli.is_gui()
@@ -117,3 +120,6 @@ https://gitea.com/amartos/ymael
         except (NameError,AttributeError):
             self.notifier.send(title,message)
         sys.exit(1)
+
+    def quit(self):
+        logger.info("Quitting successfully.")
