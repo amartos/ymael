@@ -84,6 +84,7 @@ class Tabs(QWidget):
         self._header = ("Sélection", "Date de récupération", "Titre", "Adresse")
         self._watcher_table = QTableWidget(100, len(self._header)) # lines, columns
         self._watcher_table.setSelectionBehavior(QTableView.SelectRows)
+        self._watcher_table.setSortingEnabled(True)
 
         self._update_watch_table()
 
