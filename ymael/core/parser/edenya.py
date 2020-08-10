@@ -237,7 +237,7 @@ class EdenyaParser:
                 ("<span class=\"ecriture\">(\s*)</span>",r"\1"),
                 ("<div class=\"box\">(\s*)</div>",r"\1"),
                 # formatting tags
-                ("<span class=\"langage dialogue\">(.*?)</span>",r"\1"),
+                ("<span class=\"langage dialogue .*?\">(.*?)</span>",r"\1"),
                 ("<span class=\"langage cri\">\s*(\S.*?\S)\s*</span>",       r"0b00df5945BOLD \1 BOLD72800245ef"),
                 ("<span class=\"narration\">\s*(\S.*?\S)\s*</span>", r"0b00df5945ITAL \1 ITAL72800245ef"),
                 ("<span class=\"hj\">\s*(\S.*?\S)\s*</span>",        r"0b00df5945CODE \1 CODE72800245ef"),
