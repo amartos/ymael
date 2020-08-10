@@ -22,7 +22,7 @@ class EdenyaParser:
         self.rps = {}
 
         for url in urls:
-            self._url = url
+            self._parse_location_main_type(url)
             self._parse_html(url)
             # TODO: this is not enough stringeant
             if not "Situation RP" in self._parsed.body.text:
@@ -32,12 +32,16 @@ class EdenyaParser:
             logger.debug("Building RP of {}".format(url))
             self._rp = RPmanager(rps_dir, "%Y-%m-%d %H:%M:%S")
 
-            self._parse_rp()
-            if not self._already_in:
-                location = self._parse_location()
-            else:
-                location = self._rp.get_location()
-            self._rp.set_metadata(location)
+            self._parse_urls()
+            for page,page_url in enumerate(self._urls):
+                self._parse_html(page_url)
+                self._parse_rp(page)
+                if page == 0:
+                    if not self._already_in:
+                        location = self._parse_location(page_url)
+                    else:
+                        location = self._rp.get_location()
+                    self._rp.set_metadata(location)
 
             self._rp.save()
             self.rps[url] = self._rp
@@ -107,16 +111,27 @@ class EdenyaParser:
         logger.debug("Cookies: {}".format(repr([c.name for c in domain_cookies])))
         return domain_cookies
 
+    def _parse_location_main_type(self, url):
+        self._location_type = url.split("lieux/")[1].split("/")[0]
+
     def _parse_html(self, url):
         raw_html = self._session.get(url).text
         self._parsed = bs4.BeautifulSoup(raw_html,features="lxml")
 
-    def _parse_rp(self, page=0):
+    def _parse_urls(self):
+        links = self._parsed.body.find_all('div', attrs={'class':'pager'})
+        self._urls = []
+        for i in links[0].find_all("a"):
+            if not "Suivant" in i.text and not "Précédent" in i.text:
+                self._urls.append(self._base_url+self._location_type+"/"+i["href"])
+
+    def _parse_rp(self, page):
         posts = self._parsed.body.find_all('div', attrs={'class':'forum-message box'})
-        rp_title = self._parse_post_title(posts[0])
         ig_date = self._parse_ig_date()
         weather = self._parse_weather()
-        self._already_in = self._rp.load(rp_title)
+        if page == 0 :
+            self._rp_title = self._parse_post_title(posts[0])
+            self._already_in = self._rp.load(self._rp_title)
         for index,item in enumerate(posts):
             self._rp.create_post(
                     self._parse_post_date(item),
@@ -242,13 +257,12 @@ class EdenyaParser:
 
         return text
 
-    def _parse_location(self):
-        location_type = self._url.split("lieux/")[1].split("/")[0]
+    def _parse_location(self, url):
         buttons = self._parsed.body.find_all("form", {"method":"post"})
         back_button = buttons[0]
         assert "Revenir" in str(back_button)
         action = back_button.get("action")
-        url = self._base_url+location_type+"/"+action
+        url = self._base_url+self._location_type+"/"+action
         self._parse_html(url)
 
         location_type = self._parsed.h2.text # prettier than the previous
