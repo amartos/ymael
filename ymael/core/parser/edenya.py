@@ -112,7 +112,7 @@ class EdenyaParser:
         return domain_cookies
 
     def _parse_location_main_type(self, url):
-        self._location_type = url.split("lieux/")[1].split("/")[0]
+        self._location_type = url.split("lieux/")[1].split("?")[0]
 
     def _parse_html(self, url):
         raw_html = self._session.get(url).text
@@ -158,12 +158,8 @@ class EdenyaParser:
         weather_box = weather_box.find("div", id="cadran")
         weather_box = str(weather_box).split("</p>")[1].replace("</div>", "").replace("\n", "")
         weather_split = [i for i in weather_box.split("<br/>") if i and "strong" in i]
-        weather = []
-        for i in weather_split:
-            w = i.split(" : </strong>")
-            wtype = w[0].replace("<strong>", "")
-            weather.append(wtype+" : "+w[1])
-
+        weather = [re.sub(r"<strong>(.*)</strong>(.*)",r"\1\2", i.strip()) for i in weather_split]
+        weather = [i.lower().capitalize() for i in weather]
         weather_str = ", ".join(weather)
         return weather_str
 
@@ -175,7 +171,7 @@ class EdenyaParser:
         return date_box
 
     def _parse_post_date(self, item):
-        dates = item.find("span", {"class":"date"})
+        dates = item.find("div", {"class":"date"})
         try:
             irl_date = dates.find("span", {"class":"normal"}).text.strip()
         except AttributeError:
@@ -183,7 +179,7 @@ class EdenyaParser:
         return irl_date
 
     def _parse_post_author_infos(self, item):
-        author_infos = item.find("span", {"class":"infos"})
+        author_infos = item.find("div", {"class":"infos"})
         if "inconnu(e)" in author_infos.text:
             return tuple(["Inconnu(e)"]+["?" for i in range(4)])
 
@@ -192,6 +188,7 @@ class EdenyaParser:
         others = author_infos.find("div", {"class":"infosurvol"})
         others_string = "".join([str(i) for i in others.children])
         others_split = [i.replace("<b>", "").replace("</b>", "") for i in others_string.split("<br/>")]
+        others_split = [i for i in others_split if not "<" in i and not ">" in i]
         infos = dict()
         for i in others_split:
             if len(i) > 1:
@@ -205,7 +202,7 @@ class EdenyaParser:
         return (name,race,sex,look,clothes)
 
     def _parse_post_language(self, item):
-        return item.find("span", {"class":"langue"}).text.strip()
+        return item.find("div", {"class":"langue"}).text.strip()
 
     def _parse_post_text(self, item):
         text = str(item.find("div", {"class":"message darkbox"}))
@@ -271,7 +268,7 @@ class EdenyaParser:
             location_type = "Le port"
         elif location_type == "La Grand' place":
             location_type = "La ville"
-        location_name = self._parsed.h3.text
-        full_location = "Vahal - "+location_type+" - "+location_name
-
+        location_name = self._parsed.h2.text
+        full_location = "Vahal - "+location_type
+        full_location += " - "+location_name if location_type != location_name else ""
         return full_location
