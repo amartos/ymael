@@ -112,7 +112,7 @@ class EdenyaParser:
         return domain_cookies
 
     def _parse_location_main_type(self, url):
-        self._location_type = url.split("lieux/")[1].split("?")[0]
+        self._location_type = re.split("lieux|discuter", url)[1].strip("/")
 
     def _parse_html(self, url):
         raw_html = self._session.get(url).text
@@ -123,7 +123,7 @@ class EdenyaParser:
         self._urls = []
         for i in links[0].find_all("a"):
             if not "Suivant" in i.text and not "Précédent" in i.text:
-                self._urls.append(self._base_url+self._location_type+"/"+i["href"])
+                self._urls.append(self._base_url+self._location_type+"/discuter"+i["href"])
 
     def _parse_rp(self, page):
         posts = self._parsed.body.find_all('div', attrs={'class':'forum-message box'})
@@ -261,14 +261,17 @@ class EdenyaParser:
         action = back_button.get("action")
         url = self._base_url+self._location_type+"/"+action
         self._parse_html(url)
-
-        location_type = self._parsed.h2.text # prettier than the previous
+        if self._parsed.h2:
+            location_type = self._parsed.h2.text # prettier than the previous
+            location_name = self._parsed.h2.text
+        else:
+            location_type = self._location_type
+            location_name = ""
         # the location type on the webpage is the same for both in that case
         if location_type == "Les quais":
             location_type = "Le port"
         elif location_type == "La Grand' place":
             location_type = "La ville"
-        location_name = self._parsed.h2.text
-        full_location = "Vahal - "+location_type
+        full_location = "Vahal - "+location_type.capitalize()
         full_location += " - "+location_name if location_type != location_name else ""
         return full_location
