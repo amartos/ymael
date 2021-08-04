@@ -51,7 +51,7 @@ class EdenyaParser:
         self._session.close()
 
     def _define_urls(self):
-        self._domain = "v4.edenya.net"
+        self._domain = "www.edenya.net"
         domain_url = "https://"+self._domain+"/"
         self._base_url = domain_url+"_game/vahal/lieux/"
         self._login_url = domain_url+"accueil/"
@@ -60,12 +60,12 @@ class EdenyaParser:
         load = {"pseudo":secrets[0],"password":secrets[1],"action":"login","remember":"true"}
         ua = fake_useragent.UserAgent()
         header = {
-            "Host":"v4.edenya.net",
+            "Host":"www.edenya.net",
             "User-Agent":ua.random,
             "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Language":"fr-FR,en;q=0.7,en-US;q=0.3",
             "Accept-Encoding":"gzip, deflate, br",
-            "Referer":"https://v4.edenya.net/accueil/",
+            "Referer":"https://www.edenya.net/accueil/",
             "DNT":"1",
             "Connection":"keep-alive",
             "Upgrade-Insecure-Requests":"1",
@@ -74,7 +74,7 @@ class EdenyaParser:
         supp_header = {
             "Content-Type":"application/x-www-form-urlencoded",
             "Content-Length":"65",
-            "Origin":"https://v4.edenya.net",
+            "Origin":"https://www.edenya.net",
         }
 
         self._session = requests.Session()
@@ -88,9 +88,9 @@ class EdenyaParser:
             if not self._response.ok or not check_cookie_name in self._session.cookies.keys():
                 logger.error("Could not connect to Edenya.")
                 return
-            self._session.get("https://v4.edenya.net/accueil/", headers=header)
-            self._session.get("https://v4.edenya.net/jouer/", headers=header)
-            self._session.get("https://v4.edenya.net/_game/vahal/accueil/", headers=header)
+            self._session.get("https://www.edenya.net/accueil/", headers=header)
+            self._session.get("https://www.edenya.net/jouer/", headers=header)
+            self._session.get("https://www.edenya.net/_game/vahal/accueil/", headers=header)
         else:
             logger.info("Using existing session.")
             for c in edenya_cookies:
@@ -155,7 +155,7 @@ class EdenyaParser:
 
     def _parse_weather(self):
         weather_box = self._get_context_box()
-        weather_box = weather_box.find("div", id="cadran")
+        weather_box = weather_box.find("div")#, {"class":"darkbox"})
         weather_box = str(weather_box).split("</p>")[1].replace("</div>", "").replace("\n", "")
         weather_split = [i for i in weather_box.split("<br/>") if i and "strong" in i]
         weather = [re.sub(r"<strong>(.*)</strong>(.*)",r"\1\2", i.strip()) for i in weather_split]
@@ -180,17 +180,18 @@ class EdenyaParser:
 
     def _parse_post_author_infos(self, item):
         author_infos = item.find("div", {"class":"infos"})
-        if "inconnu(e)" in author_infos.text:
+        if "Aucune information supplémentaire" in author_infos.text:
             return tuple(["Inconnu(e)"]+["?" for i in range(4)])
 
-        name = author_infos.find("a").text.strip()
+        string = author_infos.find("div", {"class":"infosurvol"})
+        string = string.find("div", {"class":"box"})
+        string = "".join([str(i) for i in string.children])
+        string = [i.replace("<b>", "").replace("</b>", "") for i in string.split("<br/>")]
 
-        others = author_infos.find("div", {"class":"infosurvol"})
-        others_string = "".join([str(i) for i in others.children])
-        others_split = [i.replace("<b>", "").replace("</b>", "") for i in others_string.split("<br/>")]
-        others_split = [i for i in others_split if not "<" in i and not ">" in i]
+        name = string[0].replace("<h4>", "").replace("</h4>", "")
+        string = [i for i in string[1:] if not "<" in i and not ">" in i]
         infos = dict()
-        for i in others_split:
+        for i in string:
             if len(i) > 1:
                 temp = i.split(" : ")
                 infos[temp[0]] = temp[1]
